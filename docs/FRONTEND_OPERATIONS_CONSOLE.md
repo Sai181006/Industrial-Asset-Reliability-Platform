@@ -7,8 +7,10 @@ predicted remaining useful life, active alerts, and maintenance work orders. It
 uses the existing FastAPI asset-detail endpoints and does not reproduce model or
 decision logic in the browser.
 
-When the API is reachable, the console loads every registered asset and its
-current persisted state. When it is unavailable, the screen uses an explicitly
+When the API is reachable and a valid bearer credential is supplied, the console
+loads every registered asset and its current persisted state. The credential is
+kept only in the current browser tab. When the API is unavailable or rejects the
+credential, the screen uses an explicitly
 identified FD001 demonstration snapshot so the interface remains reviewable
 without presenting sample values as live data.
 
@@ -31,8 +33,8 @@ backend startup.
 
 ## Product boundary
 
-This slice is read-only. Alert acknowledgement, work-order assignment, and
-other maintenance mutations remain available through the API but should be
-added to the console only after authentication and actor identity are present.
+This slice remains read-only. Authentication and actor identity are now present
+in the API; alert acknowledgement, work-order assignment, and other maintenance
+mutations are the next dedicated console workflow slice.
 
 FRONTEND OPERATIONS CONSOLE STATUS: COMPLETE

@@ -64,9 +64,14 @@ Alembic revision `0002` adds prediction severity, alerts, work orders, foreign
 keys, indexes, and uniqueness controls. Upgrade, schema-drift check, and complete
 downgrade were verified.
 
+## Subsequent integration
+
+Authentication, role authorization, and actor audit fields are now implemented
+as documented in `AUTHENTICATION_AND_RBAC.md`.
+
 ## Deferred
 
-- User identity/RBAC and technician directory.
+- Enterprise identity provider integration and technician directory.
 - Configurable thresholds stored per asset or plant.
 - Alert filtering, pagination, and detailed history endpoints.
 - Notifications.

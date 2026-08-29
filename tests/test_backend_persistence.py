@@ -95,6 +95,7 @@ def test_frontend_origin_is_allowed():
     response = asyncio.run(send())
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == "http://localhost:3000"
+    assert "authorization" in response.headers["access-control-allow-headers"].lower()
 
 
 def test_incremental_ingestion_persists_one_idempotent_prediction(
@@ -199,6 +200,7 @@ def test_critical_workflow_is_idempotent_and_transitions_are_guarded(
             {"status": "ASSIGNED", "assigned_to": "engineer-1"},
         )
         assert assigned.status_code == 200
+        assert assigned.json()["last_updated_by"] == "test-admin"
         assert request("PATCH", f"/v1/work-orders/{order_id}", {"status": "IN_PROGRESS"}).status_code == 200
 
         assert request("PATCH", f"/v1/alerts/{alert_id}", {"status": "ACKNOWLEDGED"}).status_code == 200
@@ -208,6 +210,7 @@ def test_critical_workflow_is_idempotent_and_transitions_are_guarded(
         resolved = request("PATCH", f"/v1/alerts/{alert_id}", {"status": "RESOLVED"})
         assert resolved.status_code == 200
         assert resolved.json()["active"] is False
+        assert resolved.json()["last_updated_by"] == "test-admin"
     finally:
         app.dependency_overrides.pop(get_risk_thresholds, None)
 

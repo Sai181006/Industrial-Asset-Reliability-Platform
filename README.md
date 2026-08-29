@@ -19,6 +19,8 @@ compact GRU model behind a synchronous FastAPI and SQLAlchemy backend.
 - Full HTTP replay verification using an FD001 engine trajectory.
 - Adjustable-speed, resumable FD001 telemetry replay with per-run summaries.
 - Responsive fleet operations console for RUL, risk, alerts, and work orders.
+- Default-deny bearer authentication with viewer, operator, and admin roles.
+- Authenticated-actor audit fields for maintenance workflow changes.
 
 ## Model performance
 
@@ -87,6 +89,7 @@ Create the local database and start the API:
 
 ```powershell
 alembic upgrade head
+$env:AUTH_PRINCIPALS_JSON = '<configured principal digest records>'
 uvicorn backend.app.main:app --reload
 ```
 
@@ -96,12 +99,15 @@ OpenAPI documentation will be available at
 Replay a historical FD001 unit through the running API at five cycles per second:
 
 ```powershell
+$env:RELIABILITY_API_TOKEN = '<issued operator or admin credential>'
 python scripts/replay_fd001.py --unit-id 81 --cycles-per-second 5
 ```
 
 Use `--cycles-per-second 0` for an unthrottled replay. Existing assets resume
 after their latest stored cycle. See
 [`docs/ADJUSTABLE_REPLAY_SERVICE.md`](docs/ADJUSTABLE_REPLAY_SERVICE.md).
+Authentication configuration and the role matrix are documented in
+[`docs/AUTHENTICATION_AND_RBAC.md`](docs/AUTHENTICATION_AND_RBAC.md).
 
 Run the operations console in a second terminal:
 
@@ -174,6 +180,6 @@ not represented as measurements collected from a physical factory.
 ## Current limitations
 
 - FD001 is simulated and covers one operating condition and fault mode.
-- Authentication and role-based access control are not implemented.
-- Frontend workflow mutations await authentication and actor identity.
+- Enterprise SSO and short-lived credential issuance are not implemented.
+- Frontend workflow mutations remain read-only pending their dedicated UI phase.
 - PostgreSQL concurrency/load testing and asynchronous processing are pending.

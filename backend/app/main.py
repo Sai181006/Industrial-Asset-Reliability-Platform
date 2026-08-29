@@ -1,4 +1,4 @@
-"""Minimal synchronous inference API; persistence and workflows are deferred."""
+"""Authenticated synchronous reliability API."""
 
 from functools import lru_cache
 
@@ -11,6 +11,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from backend.app.database import get_db
+from backend.app.auth import Principal, authenticate, require_admin, require_operator
 from backend.app.decision import RiskThresholds, apply_decision
 from backend.app.inference import RULInferenceService
 from backend.app.models import Alert, Asset, Prediction, TelemetryPointRecord, WorkOrder
@@ -24,6 +25,7 @@ from backend.app.schemas import (
     DecisionResponse,
     RULPredictionRequest,
     RULPredictionResponse,
+    PrincipalResponse,
     StoredPredictionResponse,
     StoredTelemetryResponse,
     TelemetryIngestResponse,
@@ -37,7 +39,8 @@ from ml.baseline import FEATURE_COLUMNS
 app = FastAPI(
     title="Industrial Asset Reliability Platform",
     version="0.1.0",
-    description="Phase 4 synchronous promoted-model inference boundary.",
+    description="Authenticated promoted-model inference and maintenance workflow API.",
+    dependencies=[Depends(authenticate)],
 )
 
 frontend_origins = [
@@ -52,8 +55,13 @@ app.add_middleware(
     allow_origins=frontend_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Authorization", "Content-Type"],
 )
+
+
+@app.get("/v1/auth/me", response_model=PrincipalResponse)
+def current_principal(principal: Principal = Depends(authenticate)) -> PrincipalResponse:
+    return PrincipalResponse(subject=principal.subject, role=principal.role_name)
 
 
 @lru_cache(maxsize=1)
@@ -70,12 +78,17 @@ def get_risk_thresholds() -> RiskThresholds:
 def predict_rul_endpoint(
     request: RULPredictionRequest,
     service: RULInferenceService = Depends(get_inference_service),
+    _principal: Principal = Depends(require_operator),
 ) -> RULPredictionResponse:
     return service.predict(request)
 
 
 @app.post("/v1/assets", response_model=AssetResponse, status_code=status.HTTP_201_CREATED)
-def create_asset(request: AssetCreate, db: Session = Depends(get_db)) -> AssetResponse:
+def create_asset(
+    request: AssetCreate,
+    db: Session = Depends(get_db),
+    _principal: Principal = Depends(require_admin),
+) -> AssetResponse:
     if db.get(Asset, request.asset_id) is not None:
         raise HTTPException(status_code=409, detail="asset already exists")
     asset = Asset(id=request.asset_id, name=request.name)
@@ -135,7 +148,10 @@ def get_asset_detail(asset_id: str, db: Session = Depends(get_db)) -> AssetDetai
 
 @app.patch("/v1/assets/{asset_id}", response_model=AssetResponse)
 def update_asset(
-    asset_id: str, request: AssetUpdate, db: Session = Depends(get_db)
+    asset_id: str,
+    request: AssetUpdate,
+    db: Session = Depends(get_db),
+    _principal: Principal = Depends(require_admin),
 ) -> AssetResponse:
     asset = db.get(Asset, asset_id)
     if asset is None:
@@ -193,6 +209,7 @@ def ingest_telemetry(
     db: Session = Depends(get_db),
     service: RULInferenceService = Depends(get_inference_service),
     thresholds: RiskThresholds = Depends(get_risk_thresholds),
+    _principal: Principal = Depends(require_operator),
 ) -> TelemetryIngestResponse:
     if db.get(Asset, asset_id) is None:
         raise HTTPException(status_code=404, detail="asset not found")
@@ -314,7 +331,10 @@ def list_alerts(
 
 @app.patch("/v1/alerts/{alert_id}", response_model=AlertResponse)
 def update_alert(
-    alert_id: int, request: AlertStatusUpdate, db: Session = Depends(get_db)
+    alert_id: int,
+    request: AlertStatusUpdate,
+    db: Session = Depends(get_db),
+    principal: Principal = Depends(require_operator),
 ) -> AlertResponse:
     alert = db.get(Alert, alert_id)
     if alert is None:
@@ -329,6 +349,7 @@ def update_alert(
         alert.active = False
         alert.resolved_at = datetime.now(timezone.utc)
     alert.status = desired
+    alert.last_updated_by = principal.subject
     db.commit()
     return AlertResponse.model_validate(alert, from_attributes=True)
 
@@ -361,6 +382,7 @@ def update_work_order(
     work_order_id: int,
     request: WorkOrderUpdate,
     db: Session = Depends(get_db),
+    principal: Principal = Depends(require_operator),
 ) -> WorkOrderResponse:
     order = db.get(WorkOrder, work_order_id)
     if order is None:
@@ -377,6 +399,7 @@ def update_work_order(
     if desired == "RESOLVED":
         order.resolved_at = datetime.now(timezone.utc)
     order.status = desired
+    order.last_updated_by = principal.subject
     db.commit()
     return WorkOrderResponse.model_validate(order, from_attributes=True)
 

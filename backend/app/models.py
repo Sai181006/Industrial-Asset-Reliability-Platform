@@ -96,6 +96,7 @@ class Alert(Base):
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_updated_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
 
 class WorkOrder(Base):
@@ -109,3 +110,4 @@ class WorkOrder(Base):
     notes: Mapped[str | None] = mapped_column(String(2000), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_updated_by: Mapped[str | None] = mapped_column(String(128), nullable=True)

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 from pathlib import Path
 import sys
 
@@ -24,6 +25,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--asset-name", help="Asset display name")
     parser.add_argument("--cycles-per-second", type=float, default=1.0, help="Replay rate; 0 is unthrottled")
     parser.add_argument("--base-url", default="http://127.0.0.1:8000", help="Backend base URL")
+    parser.add_argument("--token", default=os.getenv("RELIABILITY_API_TOKEN"), help="Bearer token (or RELIABILITY_API_TOKEN)")
     parser.add_argument("--raw-dir", type=Path, default=ROOT / "data" / "raw" / "source" / "CMAPSSData")
     parser.add_argument("--no-resume", action="store_true", help="Submit the full trajectory instead of skipping stored cycles")
     return parser.parse_args()
@@ -42,6 +44,7 @@ async def run(args: argparse.Namespace) -> None:
             unit_id=args.unit_id,
             cycles_per_second=args.cycles_per_second,
             resume=not args.no_resume,
+            bearer_token=args.token,
         )
     print(json.dumps(result.to_dict(), indent=2))
 

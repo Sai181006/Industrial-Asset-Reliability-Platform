@@ -14,6 +14,10 @@ idempotency remains the final protection against duplicate telemetry.
 
 ## Usage
 
+Supply an operator or admin credential through `RELIABILITY_API_TOKEN` (or the
+`--token` option) because asset registration and telemetry ingestion are
+protected API operations.
+
 Start the backend, then run:
 
 ```powershell

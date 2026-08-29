@@ -59,6 +59,7 @@ async def replay_trajectory(
     cycles_per_second: float,
     resume: bool = True,
     run_id: str | None = None,
+    bearer_token: str | None = None,
 ) -> ReplayResult:
     """Register an asset and replay cycles at a fixed rate (zero means unthrottled)."""
     if cycles_per_second < 0:
@@ -67,6 +68,8 @@ async def replay_trajectory(
         raise ValueError("trajectory must contain at least one cycle")
 
     run_id = run_id or str(uuid4())
+    if bearer_token:
+        client.headers["Authorization"] = f"Bearer {bearer_token}"
     started = datetime.now(timezone.utc)
     asset_response = await client.post("/v1/assets", json={"asset_id": asset_id, "name": asset_name})
     if asset_response.status_code not in (201, 409):

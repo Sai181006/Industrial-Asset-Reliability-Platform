@@ -72,6 +72,11 @@ class AssetResponse(BaseModel):
     name: str
 
 
+class PrincipalResponse(BaseModel):
+    subject: str
+    role: str
+
+
 class AssetUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: str = Field(min_length=1, max_length=255)
@@ -98,6 +103,7 @@ class AlertResponse(BaseModel):
     severity: str
     status: str
     active: bool
+    last_updated_by: str | None
 
 
 class AlertStatusUpdate(BaseModel):
@@ -112,6 +118,7 @@ class WorkOrderResponse(BaseModel):
     status: str
     assigned_to: str | None
     notes: str | None
+    last_updated_by: str | None
 
 
 class WorkOrderUpdate(BaseModel):
