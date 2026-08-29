@@ -80,6 +80,23 @@ def request(method: str, path: str, payload: dict) -> httpx.Response:
     return asyncio.run(send())
 
 
+def test_frontend_origin_is_allowed():
+    async def send() -> httpx.Response:
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+            return await client.options(
+                "/v1/assets",
+                headers={
+                    "Origin": "http://localhost:3000",
+                    "Access-Control-Request-Method": "GET",
+                },
+            )
+
+    response = asyncio.run(send())
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://localhost:3000"
+
+
 def test_incremental_ingestion_persists_one_idempotent_prediction(
     database_session_factory, telemetry_points
 ):

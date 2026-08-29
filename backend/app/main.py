@@ -3,7 +3,9 @@
 from functools import lru_cache
 
 from fastapi import Depends, FastAPI, HTTPException, Query, status
+from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timezone
+import os
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -36,6 +38,21 @@ app = FastAPI(
     title="Industrial Asset Reliability Platform",
     version="0.1.0",
     description="Phase 4 synchronous promoted-model inference boundary.",
+)
+
+frontend_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "FRONTEND_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
+    ).split(",")
+    if origin.strip()
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=frontend_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
+    allow_headers=["Content-Type"],
 )
 
 

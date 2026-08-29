@@ -18,6 +18,7 @@ compact GRU model behind a synchronous FastAPI and SQLAlchemy backend.
 - Deterministic risk thresholds and guarded maintenance state transitions.
 - Full HTTP replay verification using an FD001 engine trajectory.
 - Adjustable-speed, resumable FD001 telemetry replay with per-run summaries.
+- Responsive fleet operations console for RUL, risk, alerts, and work orders.
 
 ## Model performance
 
@@ -102,6 +103,18 @@ Use `--cycles-per-second 0` for an unthrottled replay. Existing assets resume
 after their latest stored cycle. See
 [`docs/ADJUSTABLE_REPLAY_SERVICE.md`](docs/ADJUSTABLE_REPLAY_SERVICE.md).
 
+Run the operations console in a second terminal:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+The console connects to `http://127.0.0.1:8000` by default. Configuration and
+scope are documented in
+[`docs/FRONTEND_OPERATIONS_CONSOLE.md`](docs/FRONTEND_OPERATIONS_CONSOLE.md).
+
 The default database is SQLite under `data/interim/`. To use PostgreSQL:
 
 ```powershell
@@ -162,5 +175,5 @@ not represented as measurements collected from a physical factory.
 
 - FD001 is simulated and covers one operating condition and fault mode.
 - Authentication and role-based access control are not implemented.
-- The frontend is not implemented.
+- Frontend workflow mutations await authentication and actor identity.
 - PostgreSQL concurrency/load testing and asynchronous processing are pending.
