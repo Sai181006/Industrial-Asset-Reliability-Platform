@@ -17,6 +17,7 @@ compact GRU model behind a synchronous FastAPI and SQLAlchemy backend.
 - Asset, telemetry, prediction, alert, and work-order persistence.
 - Deterministic risk thresholds and guarded maintenance state transitions.
 - Full HTTP replay verification using an FD001 engine trajectory.
+- Adjustable-speed, resumable FD001 telemetry replay with per-run summaries.
 
 ## Model performance
 
@@ -91,6 +92,16 @@ uvicorn backend.app.main:app --reload
 OpenAPI documentation will be available at
 [`http://127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs).
 
+Replay a historical FD001 unit through the running API at five cycles per second:
+
+```powershell
+python scripts/replay_fd001.py --unit-id 81 --cycles-per-second 5
+```
+
+Use `--cycles-per-second 0` for an unthrottled replay. Existing assets resume
+after their latest stored cycle. See
+[`docs/ADJUSTABLE_REPLAY_SERVICE.md`](docs/ADJUSTABLE_REPLAY_SERVICE.md).
+
 The default database is SQLite under `data/interim/`. To use PostgreSQL:
 
 ```powershell
@@ -151,6 +162,5 @@ not represented as measurements collected from a physical factory.
 
 - FD001 is simulated and covers one operating condition and fault mode.
 - Authentication and role-based access control are not implemented.
-- The frontend and adjustable-speed replay service are not implemented.
+- The frontend is not implemented.
 - PostgreSQL concurrency/load testing and asynchronous processing are pending.
-
