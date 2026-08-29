@@ -1,0 +1,85 @@
+{
+  "target_decision": "uncapped linear RUL retained for direct cycle semantics",
+  "window_decision": 30,
+  "window_reason": "all engines retained; 30 cycles adds 50% history over 20 while retaining 94.7% as many sequences; 50 loses substantially more samples",
+  "windows": [
+    {
+      "window_length": 20,
+      "sequences": 18731,
+      "engines_too_short": 0,
+      "target_min": 0,
+      "target_median": 93.0,
+      "target_max": 342,
+      "low_rul_sequences": 3100
+    },
+    {
+      "window_length": 30,
+      "sequences": 17731,
+      "engines_too_short": 0,
+      "target_min": 0,
+      "target_median": 88.0,
+      "target_max": 332,
+      "low_rul_sequences": 3100
+    },
+    {
+      "window_length": 50,
+      "sequences": 15731,
+      "engines_too_short": 0,
+      "target_min": 0,
+      "target_median": 78.0,
+      "target_max": 312,
+      "low_rul_sequences": 3100
+    }
+  ],
+  "grouped_random_forest_folds": [
+    {
+      "fold": 1,
+      "validation_units": 20,
+      "mae": 31.210516116385836,
+      "rmse": 45.44911590406843,
+      "low_rul_mae": 6.030164141427192
+    },
+    {
+      "fold": 2,
+      "validation_units": 20,
+      "mae": 29.009952567973638,
+      "rmse": 42.22396429941964,
+      "low_rul_mae": 6.910003357508812
+    },
+    {
+      "fold": 3,
+      "validation_units": 20,
+      "mae": 31.98294940427953,
+      "rmse": 43.495070517137826,
+      "low_rul_mae": 9.907757581210168
+    },
+    {
+      "fold": 4,
+      "validation_units": 20,
+      "mae": 29.2685665833662,
+      "rmse": 41.31293574480026,
+      "low_rul_mae": 7.220672761301425
+    },
+    {
+      "fold": 5,
+      "validation_units": 20,
+      "mae": 29.838666664986153,
+      "rmse": 40.54061022937046,
+      "low_rul_mae": 7.921903354119974
+    }
+  ],
+  "grouped_random_forest_summary": {
+    "mae": {
+      "mean": 30.262130267398277,
+      "std": 1.2840456989675466
+    },
+    "rmse": {
+      "mean": 42.60433933895932,
+      "std": 1.9337490781283804
+    },
+    "low_rul_mae": {
+      "mean": 7.5981002391135135,
+      "std": 1.4589138015231047
+    }
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "model_id": "fd001-gru-rul",
+  "version": "1.0.0",
+  "status": "promoted_for_backend_mvp",
+  "created_date": "2026-08-28",
+  "artifact": "ml/artifacts/fd001_gru.pt",
+  "artifact_sha256": "8d72fd3183d02eda52765ef7f6c486b13915cafef06dd688f18fb2252bf081b1",
+  "dataset": {
+    "name": "NASA C-MAPSS FD001",
+    "training_units": "1-80",
+    "development_validation_units": "81-100",
+    "official_test_units": "1-100 final observed endpoint"
+  },
+  "input_contract": {
+    "shape": [
+      30,
+      24
+    ],
+    "feature_order": [
+      "operational_setting_1",
+      "operational_setting_2",
+      "operational_setting_3",
+      "sensor_1",
+      "sensor_2",
+      "sensor_3",
+      "sensor_4",
+      "sensor_5",
+      "sensor_6",
+      "sensor_7",
+      "sensor_8",
+      "sensor_9",
+      "sensor_10",
+      "sensor_11",
+      "sensor_12",
+      "sensor_13",
+      "sensor_14",
+      "sensor_15",
+      "sensor_16",
+      "sensor_17",
+      "sensor_18",
+      "sensor_19",
+      "sensor_20",
+      "sensor_21"
+    ],
+    "dtype": "float32",
+    "cycle_order": "ascending, consecutive within one engine",
+    "scaling": "artifact StandardScaler statistics; never refit at inference"
+  },
+  "output_contract": {
+    "raw_rul": "unclipped model output retained for monitoring",
+    "operational_rul": "max(raw_rul, 0.0) used by deterministic decision logic",
+    "unit": "operating cycles"
+  },
+  "training": {
+    "seeds_checked": [
+      7,
+      42,
+      77
+    ],
+    "promoted_seed": 42,
+    "epochs": 11
+  },
+  "development_seed_results": [
+    {
+      "seed": 7,
+      "mae": 28.394601821899414,
+      "rmse": 43.84260010519877,
+      "low_rul_mae": 5.136346817016602,
+      "low_rul_rmse": 6.717846902877294,
+      "negative_predictions": 2
+    },
+    {
+      "seed": 42,
+      "mae": 26.491535186767578,
+      "rmse": 40.77657420512726,
+      "low_rul_mae": 4.890087604522705,
+      "low_rul_rmse": 6.829440271724238,
+      "negative_predictions": 10
+    },
+    {
+      "seed": 77,
+      "mae": 26.554462432861328,
+      "rmse": 40.622774878966446,
+      "low_rul_mae": 5.103820323944092,
+      "low_rul_rmse": 7.376124150867695,
+      "negative_predictions": 12
+    }
+  ],
+  "development_stability": {
+    "mae": {
+      "mean": 27.14686648050944,
+      "sample_std": 1.0810284784363462,
+      "min": 26.491535186767578,
+      "max": 28.394601821899414
+    },
+    "rmse": {
+      "mean": 41.747316396430826,
+      "sample_std": 1.8161976553649506,
+      "min": 40.622774878966446,
+      "max": 43.84260010519877
+    },
+    "low_rul_mae": {
+      "mean": 5.043418248494466,
+      "sample_std": 0.13378044690273397,
+      "min": 4.890087604522705,
+      "max": 5.136346817016602
+    },
+    "low_rul_rmse": {
+      "mean": 6.974470441823076,
+      "sample_std": 0.3522890098834017,
+      "min": 6.717846902877294,
+      "max": 7.376124150867695
+    }
+  },
+  "official_test_seed_42": {
+    "raw": {
+      "mae": 18.305025100708008,
+      "rmse": 25.281806477574566,
+      "low_rul_mae": 4.998255252838135,
+      "low_rul_rmse": 7.396067383693893,
+      "negative_predictions": 0
+    },
+    "operational_non_negative": {
+      "mae": 18.305025100708008,
+      "rmse": 25.281806477574566,
+      "low_rul_mae": 4.998255252838135,
+      "low_rul_rmse": 7.396067383693893,
+      "negative_predictions": 0
+    }
+  },
+  "runtime": {
+    "python": "3.12.13",
+    "torch": "2.13.0+cpu",
+    "numpy": "2.5.2",
+    "scikit_learn": "1.9.0"
+  }
+}

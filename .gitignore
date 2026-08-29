@@ -1,0 +1,48 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+.matplotlib-cache/
+.venv/
+venv/
+env/
+.env
+.env.*
+!.env.example
+*.log
+*.tmp
+*.bak
+.coverage
+htmlcov/
+coverage.xml
+
+# Editors and operating-system metadata.
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Build and packaging outputs.
+build/
+dist/
+*.egg-info/
+
+# Local databases and credentials.
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.pem
+*.key
+
+# Immutable source data and generated datasets stay local.
+data/raw/*
+!data/raw/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Original staging copies; canonical project documents live at repository root.
+industrial_asset_reliability_docs/
