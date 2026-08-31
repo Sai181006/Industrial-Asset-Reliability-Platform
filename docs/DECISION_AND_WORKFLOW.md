@@ -76,6 +76,6 @@ as documented in `AUTHENTICATION_AND_RBAC.md`.
 - Alert filtering, pagination, and detailed history endpoints.
 - Notifications.
 - Asynchronous processing and broker delivery.
-- Frontend workflow screens.
+- Asset administration screens.
 
 DECISION AND WORKFLOW STATUS: COMPLETE

@@ -21,6 +21,7 @@ compact GRU model behind a synchronous FastAPI and SQLAlchemy backend.
 - Responsive fleet operations console for RUL, risk, alerts, and work orders.
 - Default-deny bearer authentication with viewer, operator, and admin roles.
 - Authenticated-actor audit fields for maintenance workflow changes.
+- Role-aware console actions for alert and work-order state transitions.
 
 ## Model performance
 
@@ -181,5 +182,5 @@ not represented as measurements collected from a physical factory.
 
 - FD001 is simulated and covers one operating condition and fault mode.
 - Enterprise SSO and short-lived credential issuance are not implemented.
-- Frontend workflow mutations remain read-only pending their dedicated UI phase.
+- The console currently supports workflow transitions but not asset administration.
 - PostgreSQL concurrency/load testing and asynchronous processing are pending.

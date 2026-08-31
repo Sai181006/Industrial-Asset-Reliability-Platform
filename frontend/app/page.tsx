@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 type Prediction = { operational_rul: number; risk_severity: string; window_end_cycle: number };
-type Alert = { id: number; asset_id: string; severity: string; status: string; active: boolean };
-type WorkOrder = { id: number; asset_id: string; status: string; assigned_to: string | null };
+type Alert = { id: number; asset_id: string; severity: string; status: string; active: boolean; last_updated_by?: string | null };
+type WorkOrder = { id: number; asset_id: string; status: string; assigned_to: string | null; notes?: string | null; last_updated_by?: string | null };
 type Asset = { asset_id: string; name: string; telemetry_count: number; prediction_count: number; latest_cycle: number | null; latest_prediction: Prediction | null; active_alert: Alert | null; active_work_order: WorkOrder | null };
 type Principal = { subject: string; role: string };
 
@@ -25,6 +25,10 @@ export default function Home() {
   const [updatedAt, setUpdatedAt] = useState(new Date());
   const [token, setToken] = useState('');
   const [principal, setPrincipal] = useState<Principal | null>(null);
+  const [assignee, setAssignee] = useState('');
+  const [notes, setNotes] = useState('');
+  const [workflowMessage, setWorkflowMessage] = useState('');
+  const [workflowBusy, setWorkflowBusy] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setToken(window.sessionStorage.getItem('reliability-api-token') || ''), 0);
@@ -68,6 +72,54 @@ export default function Home() {
     return () => window.clearTimeout(timer);
   }, [refresh]);
   const selected = assets.find((asset) => asset.asset_id === selectedId) || assets[0];
+  const canOperate = mode === 'live' && (principal?.role === 'operator' || principal?.role === 'admin');
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setAssignee(selected?.active_work_order?.assigned_to || '');
+      setNotes(selected?.active_work_order?.notes || '');
+      setWorkflowMessage('');
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [selectedId, selected?.active_work_order?.assigned_to, selected?.active_work_order?.notes]);
+
+  const updateWorkflow = async (path: string, body: Record<string, string>) => {
+    setWorkflowBusy(true);
+    setWorkflowMessage('');
+    try {
+      const response = await fetch(`${API_BASE}${path}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: 'Workflow update failed' })) as { detail?: string };
+        throw new Error(error.detail || 'Workflow update failed');
+      }
+      setWorkflowMessage('Workflow updated successfully.');
+      await refresh();
+    } catch (error) {
+      setWorkflowMessage(error instanceof Error ? error.message : 'Workflow update failed');
+    } finally { setWorkflowBusy(false); }
+  };
+
+  const advanceAlert = () => {
+    const alert = selected?.active_alert;
+    if (!alert) return;
+    const next = alert.status === 'OPEN' ? 'ACKNOWLEDGED' : alert.status === 'ACKNOWLEDGED' ? 'RESOLVED' : null;
+    if (next) void updateWorkflow(`/v1/alerts/${alert.id}`, { status: next });
+  };
+
+  const advanceWorkOrder = () => {
+    const order = selected?.active_work_order;
+    if (!order) return;
+    const next = order.status === 'OPEN' ? 'ASSIGNED' : order.status === 'ASSIGNED' ? 'IN_PROGRESS' : order.status === 'IN_PROGRESS' ? 'RESOLVED' : null;
+    if (!next) return;
+    const body: Record<string, string> = { status: next };
+    if (assignee.trim()) body.assigned_to = assignee.trim();
+    if (notes.trim()) body.notes = notes.trim();
+    void updateWorkflow(`/v1/work-orders/${order.id}`, body);
+  };
   const counts = useMemo(() => assets.reduce((acc, asset) => { const severity = asset.latest_prediction?.risk_severity || 'NORMAL'; acc[severity] = (acc[severity] || 0) + 1; return acc; }, {} as Record<string, number>), [assets]);
   const activeAlerts = assets.filter((asset) => asset.active_alert).length;
   const openOrders = assets.filter((asset) => asset.active_work_order && asset.active_work_order.status !== 'RESOLVED').length;
@@ -83,7 +135,7 @@ export default function Home() {
     </section>
     <section className="workspace">
       <article className="panel fleet-panel"><div className="panel-title"><div><p className="eyebrow">Priority queue</p><h2>Asset health</h2></div><span>{assets.length} assets</span></div><div className="asset-list">{assets.map((asset) => { const prediction = asset.latest_prediction; const severity = prediction?.risk_severity || 'NORMAL'; return <button key={asset.asset_id} className={`asset-row ${asset.asset_id === selected?.asset_id ? 'selected' : ''}`} onClick={() => setSelectedId(asset.asset_id)}><span className={severityClass(severity)}>{severity}</span><span className="asset-name"><strong>{asset.name}</strong><small>{asset.asset_id} · Cycle {asset.latest_cycle ?? '—'}</small></span><span className="rul"><strong>{prediction ? prediction.operational_rul.toFixed(1) : '—'}</strong><small>cycles RUL</small></span></button>; })}</div></article>
-      <aside className="panel detail-panel">{selected && <><div className="panel-title"><div><p className="eyebrow">Selected asset</p><h2>{selected.name}</h2></div><span className={severityClass(selected.latest_prediction?.risk_severity)}>{selected.latest_prediction?.risk_severity || 'NO DATA'}</span></div><div className="rul-hero"><span>Remaining useful life</span><div><strong>{selected.latest_prediction?.operational_rul.toFixed(1) || '—'}</strong><em>cycles</em></div><p>GRU model v1.0.0 · through cycle {selected.latest_cycle || '—'}</p></div><div className="detail-stats"><div><span>Predictions</span><strong>{selected.prediction_count}</strong></div><div><span>Telemetry</span><strong>{selected.telemetry_count}</strong></div></div><div className="workflow-card"><div className="workflow-heading"><span>Alert workflow</span><strong>{selected.active_alert?.status || 'CLEAR'}</strong></div>{selected.active_alert ? <><p>{selected.active_alert.severity} risk alert #{selected.active_alert.id}</p><div className="progress"><i /><i className={selected.active_alert.status !== 'OPEN' ? 'done' : ''} /><i className={selected.active_alert.status === 'RESOLVED' ? 'done' : ''} /></div></> : <p>No active maintenance alert.</p>}</div><div className="workflow-card"><div className="workflow-heading"><span>Work order</span><strong>{selected.active_work_order?.status || 'NOT REQUIRED'}</strong></div><p>{selected.active_work_order ? `Order #${selected.active_work_order.id} · ${selected.active_work_order.assigned_to || 'Unassigned'}` : 'Created automatically at critical risk.'}</p></div></>}</aside>
+      <aside className="panel detail-panel">{selected && <><div className="panel-title"><div><p className="eyebrow">Selected asset</p><h2>{selected.name}</h2></div><span className={severityClass(selected.latest_prediction?.risk_severity)}>{selected.latest_prediction?.risk_severity || 'NO DATA'}</span></div><div className="rul-hero"><span>Remaining useful life</span><div><strong>{selected.latest_prediction?.operational_rul.toFixed(1) || '—'}</strong><em>cycles</em></div><p>GRU model v1.0.0 · through cycle {selected.latest_cycle || '—'}</p></div><div className="detail-stats"><div><span>Predictions</span><strong>{selected.prediction_count}</strong></div><div><span>Telemetry</span><strong>{selected.telemetry_count}</strong></div></div><div className="workflow-card"><div className="workflow-heading"><span>Alert workflow</span><strong>{selected.active_alert?.status || 'CLEAR'}</strong></div>{selected.active_alert ? <><p>{selected.active_alert.severity} risk alert #{selected.active_alert.id}{selected.active_alert.last_updated_by ? ` · Updated by ${selected.active_alert.last_updated_by}` : ''}</p><div className="progress"><i /><i className={selected.active_alert.status !== 'OPEN' ? 'done' : ''} /><i className={selected.active_alert.status === 'RESOLVED' ? 'done' : ''} /></div>{canOperate && selected.active_alert.status !== 'RESOLVED' && <button className="workflow-action" disabled={workflowBusy || (selected.active_alert.status === 'ACKNOWLEDGED' && !!selected.active_work_order && selected.active_work_order.status !== 'RESOLVED')} onClick={advanceAlert}>{selected.active_alert.status === 'OPEN' ? 'Acknowledge alert' : 'Resolve alert'}</button>}</> : <p>No active maintenance alert.</p>}</div><div className="workflow-card"><div className="workflow-heading"><span>Work order</span><strong>{selected.active_work_order?.status || 'NOT REQUIRED'}</strong></div><p>{selected.active_work_order ? `Order #${selected.active_work_order.id} · ${selected.active_work_order.assigned_to || 'Unassigned'}${selected.active_work_order.last_updated_by ? ` · Updated by ${selected.active_work_order.last_updated_by}` : ''}` : 'Created automatically at critical risk.'}</p>{canOperate && selected.active_work_order && selected.active_work_order.status !== 'RESOLVED' && <div className="workflow-form">{selected.active_work_order.status === 'OPEN' && <input value={assignee} onChange={(event) => setAssignee(event.target.value)} placeholder="Assignee" aria-label="Work-order assignee" />}<textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Maintenance notes (optional)" aria-label="Maintenance notes" rows={2} /><button className="workflow-action" disabled={workflowBusy || (selected.active_work_order.status === 'OPEN' && !assignee.trim())} onClick={advanceWorkOrder}>{selected.active_work_order.status === 'OPEN' ? 'Assign work order' : selected.active_work_order.status === 'ASSIGNED' ? 'Start work' : 'Resolve work order'}</button></div>}</div>{mode === 'live' && principal?.role === 'viewer' && <p className="read-only-note">Viewer access is read-only. An operator or admin must advance workflows.</p>}{workflowMessage && <p className={`workflow-message ${workflowMessage.includes('successfully') ? 'success' : 'error'}`} role="status">{workflowMessage}</p>}</>}</aside>
     </section>
     {mode === 'demo' && <section className="access-panel"><div><strong>Connect to the operations API</strong><p>Enter an issued bearer credential to view protected fleet data. It is retained only for this browser tab.</p></div><form onSubmit={connect}><input name="token" type="password" defaultValue={token} placeholder="Bearer credential" aria-label="API bearer credential" autoComplete="off" /><button type="submit">Connect</button></form><small>Showing an identified FD001 demonstration snapshot until authenticated.</small></section>}
   </main>;

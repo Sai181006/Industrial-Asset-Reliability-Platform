@@ -33,8 +33,12 @@ backend startup.
 
 ## Product boundary
 
-This slice remains read-only. Authentication and actor identity are now present
-in the API; alert acknowledgement, work-order assignment, and other maintenance
-mutations are the next dedicated console workflow slice.
+Authenticated operators and admins can acknowledge and resolve alerts, assign
+work orders, add maintenance notes, and advance work through the guarded state
+machine. The console exposes only the next valid transition, disables alert
+resolution until its work order is resolved, and refreshes persisted state after
+each successful action. Viewers receive an explicit read-only experience.
+
+Asset registration and renaming remain API-only administrative operations.
 
 FRONTEND OPERATIONS CONSOLE STATUS: COMPLETE
