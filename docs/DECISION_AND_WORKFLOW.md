@@ -11,7 +11,11 @@ Operational RUL is mapped deterministically:
 | `<= RUL_MEDIUM_THRESHOLD` | MEDIUM |
 | above medium threshold | NORMAL |
 
-Defaults are 10, 30, and 70 cycles. Environment overrides are accepted only
+Defaults are 15, 30, and 70 cycles. The critical default was raised from 10 after the
+maintenance-policy back-test (`POLICY_BACKTEST.md`, `GRU_AND_THRESHOLD_EXPERIMENTS.md`):
+set it to the work-order lead time in cycles plus about 10; 15 is the safest fixed
+value for leads of 0-5 cycles. Stored predictions keep the severity they were created
+with. The served HGB model clips operational RUL to 125, so all thresholds sit inside the cap. Environment overrides are accepted only
 when `0 <= critical <= high <= medium`. The persisted prediction records the
 resulting severity.
 

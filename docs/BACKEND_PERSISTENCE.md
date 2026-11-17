@@ -119,6 +119,8 @@ is configured; PostgreSQL tests used its default READ COMMITTED behavior.
 
 ### Migration and legacy-data boundary
 
+Revision `0005` adds a nullable JSON `drivers` column to `predictions` (top drifting sensors; null for GRU predictions and history).
+
 Revision `0004` adds `decision_processed`, `decision_alert_id`, and
 `decision_work_order_id`. Existing records remain readable, but receive
 `decision_processed=false`: the previous separately committed steps cannot prove

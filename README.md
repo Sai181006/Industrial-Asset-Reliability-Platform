@@ -5,14 +5,15 @@ into Remaining Useful Life (RUL) estimates, deterministic risk levels, alerts,
 and maintenance work orders.
 
 The current implementation uses the NASA C-MAPSS FD001 turbofan dataset and a
-compact GRU model behind a synchronous FastAPI and SQLAlchemy backend.
+window-feature gradient-boosting model (the original GRU stays selectable) behind a
+synchronous FastAPI and SQLAlchemy backend.
 
 ## What is implemented
 
 - Official NASA C-MAPSS FD001 acquisition and validation.
 - Reproducible EDA and leakage-safe engine-level splits.
 - Median, linear-regression, random-forest, and gradient-boosting baselines.
-- A promoted 30-cycle GRU RUL model.
+- A served 30-cycle window-feature gradient-boosting RUL model (version 2.0.0, test RMSE 14.35) and the original GRU (version 1.0.0, test RMSE 25.28) as a selectable legacy model.
 - Strict telemetry-window validation and versioned model inference.
 - Asset, telemetry, prediction, alert, and work-order persistence.
 - Deterministic risk thresholds and guarded maintenance state transitions.
@@ -33,15 +34,15 @@ Models other than the refit row are trained on units 1-80, like the GRU.
 
 | Model | Features | RUL target | Test RMSE | Test MAE | NASA score |
 |---|---|---|---:|---:|---:|
-| Promoted GRU (serving model) | 24 raw | uncapped | 25.28 | 18.31 | not computed |
+| Original GRU (legacy, `RUL_MODEL=gru`) | 24 raw | uncapped | 25.28 | 18.31 | not computed |
 | Random forest | 24 raw | uncapped | 23.44 | 16.91 | 3,763 |
 | Random forest, window features | 14 sensors | capped at 125 | 13.47 | 10.17 | 246 |
 | Histogram gradient boosting, window features | 14 sensors | capped at 125 | 14.61 | 11.28 | 295 |
-| **Same, refit on all 100 engines (selected by CV)** | 14 sensors | capped at 125 | **14.35** | **10.76** | **287** |
+| **Same, refit on all 100 engines (selected by CV; served, version 2.0.0)** | 14 sensors | capped at 125 | **14.35** | **10.76** | **287** |
 | Experimental GRU (JAX stand-in, mean of 3 seeds) | 14 sensors | capped at 125 | 15.34 | 11.26 | 430 |
 
-The refit model's RMSE has a bootstrap 95% interval of 12.0-16.5. The promoted GRU
-does not beat simple tree models on this protocol, and the backend still serves it.
+The refit model's RMSE has a bootstrap 95% interval of 12.0-16.5. The original GRU
+does not beat simple tree models on this protocol, so the backend now serves the tree model.
 Giving the same GRU capped targets and the 14 cleaned sensors cuts its test RMSE from 25.3 to 15.3 but
 still does not beat the trees (see [`docs/GRU_AND_THRESHOLD_EXPERIMENTS.md`](docs/GRU_AND_THRESHOLD_EXPERIMENTS.md)).
 
@@ -53,9 +54,10 @@ use different row sets and are not comparable with this table.
 Replaying all 100 training engines with out-of-fold predictions, a model-driven
 maintenance rule costs 35.1% less per operating cycle than the best fixed
 interval (95% interval 19.8% to 48.3%), assuming a failure costs 10x a planned
-job and work orders take 5 cycles to execute. The default critical threshold of
+job and work orders take 5 cycles to execute. A critical threshold of
 10 cycles is only safe when work orders execute almost immediately: with a
-5-cycle lead it fails 7 engines in 100. These costs are illustrative assumptions
+5-cycle lead it fails 7 engines in 100. The default is now 15, the safest fixed
+value for leads of 0-5 cycles (use lead time + about 10 if yours differs). These costs are illustrative assumptions
 on simulated data. See [`docs/POLICY_BACKTEST.md`](docs/POLICY_BACKTEST.md).
 
 ## System flow
@@ -65,7 +67,7 @@ Telemetry cycle
       ↓
 Persist and assemble latest 30 consecutive cycles
       ↓
-Promoted GRU inference
+Window-HGB inference (default) or GRU (`RUL_MODEL=gru`)
       ↓
 Raw RUL + non-negative operational RUL
       ↓
@@ -157,12 +159,32 @@ alembic upgrade head
 Default thresholds are configurable before API startup:
 
 ```powershell
-$env:RUL_CRITICAL_THRESHOLD = "10"
+$env:RUL_CRITICAL_THRESHOLD = "15"   # work-order lead time in cycles + about 10
 $env:RUL_HIGH_THRESHOLD = "30"
 $env:RUL_MEDIUM_THRESHOLD = "70"
 ```
 
 The required ordering is `0 <= critical <= high <= medium`.
+Stored predictions keep the severity they were created with; changing thresholds
+does not reclassify history.
+
+## Choose the served model
+
+```powershell
+$env:RUL_MODEL = "hgb"   # default: window-feature gradient boosting, version 2.0.0
+$env:RUL_MODEL = "gru"   # legacy torch GRU, version 1.0.0 (needs torch)
+```
+
+The two models have different `model_version` values on purpose: predictions are
+unique per asset, cycle and `model_version`. Switching models mid-stream adds
+predictions under the new version, which can escalate an existing alert.
+`operational_rul` from the HGB model is clipped to 0-125, so values near 125 mean
+"healthy, no usable estimate", not a measured remaining life. Each HGB prediction
+also lists the top 3 sensors drifting furthest toward their degraded direction
+versus a healthy baseline (`drivers`). This is a drift ranking, not a diagnosis.
+Pickled models depend on the scikit-learn version: after changing it, run
+`python scripts/export_fd001_hgb.py` to rebuild the artifact and manifest. The
+service refuses to start if the golden predictions in the manifest do not match.
 
 ## Reproduce the ML results
 
@@ -173,9 +195,10 @@ python scripts/train_fd001_gru.py
 python scripts/promote_fd001_gru.py
 python scripts/run_fd001_evaluation.py
 python scripts/run_fd001_policy_backtest.py
+python scripts/export_fd001_hgb.py
 ```
 
-The promoted model and its versioned inference manifest are stored in
+The promoted models and its versioned inference manifest are stored in
 `ml/artifacts/`.
 
 ## Run tests

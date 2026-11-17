@@ -1,5 +1,13 @@
 # Phase 4 Synchronous Inference Boundary
 
+> **Update (model 2.0.0):** the backend now serves `fd001-hgb-window-rul` version
+> `2.0.0` by default; `RUL_MODEL=gru` selects the original GRU described below.
+> For the HGB model `operational_rul` is `clip(raw_rul, 0, 125)`, the manifest
+> freezes the 14 input sensors, and responses add an optional `drivers` list (top 3
+> sensors drifting toward degradation versus a healthy baseline). Startup also
+> checks golden predictions stored in the manifest. Torch is imported lazily, so
+> the backend runs without it. See the README section "Choose the served model".
+
 ## Scope completed
 
 The first backend vertical slice exposes one synchronous endpoint:
