@@ -25,16 +25,22 @@ compact GRU model behind a synchronous FastAPI and SQLAlchemy backend.
 
 ## Model performance
 
-| Model | Validation MAE | Validation RMSE | MAE at RUL <= 30 |
-|---|---:|---:|---:|
-| Random forest | 36.369 | 51.203 | 7.737 |
-| Histogram gradient boosting | 36.793 | 51.798 | 7.301 |
-| 30-cycle GRU | **26.492** | **40.777** | **4.890** |
+All rows are scored on the official FD001 test endpoints (100 engines) with one
+shared protocol; see [`docs/EVALUATION_RESULTS.md`](docs/EVALUATION_RESULTS.md).
+Models other than the last row are trained on units 1-80, like the GRU.
 
-The promoted GRU achieved an MAE of **18.305** and RMSE of **25.282** on the
-official FD001 test endpoints. Detailed results are available in
-[`docs/GRU_RESULTS.md`](docs/GRU_RESULTS.md) and
-[`docs/MODEL_PROMOTION.md`](docs/MODEL_PROMOTION.md).
+| Model | Features | RUL target | Test RMSE | Test MAE | NASA score |
+|---|---|---|---:|---:|---:|
+| Promoted GRU (serving model) | 24 raw | uncapped | 25.28 | 18.31 | not computed |
+| Random forest | 24 raw | uncapped | 23.44 | 16.91 | 3,763 |
+| Random forest, window features | 14 sensors | capped at 125 | 13.47 | 10.17 | 246 |
+| Histogram gradient boosting, window features | 14 sensors | capped at 125 | 14.61 | 11.28 | 295 |
+| **Same, refit on all 100 engines (selected by CV)** | 14 sensors | capped at 125 | **14.35** | **10.76** | **287** |
+
+The refit model's RMSE has a bootstrap 95% interval of 12.0-16.5. The promoted GRU
+does not beat simple tree models on this protocol, and the backend still serves it.
+Earlier validation tables in `docs/GRU_RESULTS.md` and `docs/BASELINE_RESULTS.md`
+use different row sets and are not comparable with this table.
 
 ## System flow
 
@@ -151,6 +157,7 @@ python scripts/promote_fd001_gru.py
 ```
 
 The promoted model and its versioned inference manifest are stored in
+python scripts/run_fd001_evaluation.py
 `ml/artifacts/`.
 
 ## Run tests
