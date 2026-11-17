@@ -1,42 +1,58 @@
+# Python
 __pycache__/
 *.py[cod]
+*.egg-info/
 .pytest_cache/
-.ipynb_checkpoints/
-.matplotlib-cache/
-.venv/
-venv/
-env/
-.env
-.env.*
-!.env.example
-*.log
-*.tmp
-*.bak
+.mypy_cache/
+.ruff_cache/
 .coverage
 htmlcov/
 coverage.xml
-
-# Editors and operating-system metadata.
-.idea/
-.vscode/
-.DS_Store
-Thumbs.db
-
-# Build and packaging outputs.
 build/
 dist/
-*.egg-info/
+.venv/
+venv/
+env/
 
-# Local databases and credentials.
+# Notebooks and plotting caches
+.ipynb_checkpoints/
+.matplotlib-cache/
+
+# Node / frontend build output
+node_modules/
+.next/
+.vinext/
+.wrangler/
+out/
+*.tsbuildinfo
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local databases
 *.db
 *.db-shm
 *.db-wal
 *.sqlite
 *.sqlite3
-*.pem
-*.key
 
-# Immutable source data and generated datasets stay local.
+# Logs, scratch and backups
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Raw and generated datasets stay local; run scripts/acquire_cmapss.ps1 to download
 data/raw/*
 !data/raw/.gitkeep
 data/interim/*
@@ -44,5 +60,6 @@ data/interim/*
 data/processed/*
 !data/processed/.gitkeep
 
-# Original staging copies; canonical project documents live at repository root.
+# Local planning and hand-off material is not part of the repository
 industrial_asset_reliability_docs/
+industrial-asset-reliability-handoff/
