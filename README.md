@@ -44,6 +44,16 @@ use different row sets and are not comparable with this table.
 
 ## System flow
 
+## Maintenance-policy back-test
+
+Replaying all 100 training engines with out-of-fold predictions, a model-driven
+maintenance rule costs 35.1% less per operating cycle than the best fixed
+interval (95% interval 19.8% to 48.3%), assuming a failure costs 10x a planned
+job and work orders take 5 cycles to execute. The default critical threshold of
+10 cycles is only safe when work orders execute almost immediately: with a
+5-cycle lead it fails 7 engines in 100. These costs are illustrative assumptions
+on simulated data. See [`docs/POLICY_BACKTEST.md`](docs/POLICY_BACKTEST.md).
+
 ```text
 Telemetry cycle
       ↓
@@ -157,6 +167,8 @@ python scripts/promote_fd001_gru.py
 ```
 
 The promoted model and its versioned inference manifest are stored in
+python scripts/run_fd001_evaluation.py
+python scripts/run_fd001_policy_backtest.py
 python scripts/run_fd001_evaluation.py
 `ml/artifacts/`.
 
