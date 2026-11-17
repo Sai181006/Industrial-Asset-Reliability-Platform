@@ -42,3 +42,11 @@ each successful action. Viewers receive an explicit read-only experience.
 Asset registration and renaming remain API-only administrative operations.
 
 FRONTEND OPERATIONS CONSOLE STATUS: COMPLETE
+
+## Model label and drift sensors
+
+The asset panel shows the serving model id and version from the latest stored
+prediction instead of a fixed label. For the window-HGB model it also lists the top
+three drifting sensors versus a healthy baseline (a drift ranking, not a diagnosis)
+and notes that estimates above about 100 cycles only mean "healthy" because the
+model is capped at 125.
