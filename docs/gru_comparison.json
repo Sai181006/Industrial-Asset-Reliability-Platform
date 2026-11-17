@@ -1,0 +1,153 @@
+{
+  "note": "JAX stand-in for the torch GRU (see scripts/exp_gru_jax.py); not a deployable artifact.",
+  "architecture": {
+    "hidden": 32,
+    "head": 16,
+    "dropout": 0.1,
+    "batch": 256,
+    "lr": 0.001,
+    "max_epochs": 40,
+    "patience": 5
+  },
+  "proxy_check": {
+    "promoted_torch": {
+      "dev_validation_mae": {
+        "seed7": 28.395,
+        "seed42": 26.492,
+        "seed77": 26.55,
+        "mean": 27.147
+      },
+      "dev_validation_rmse_mean": 41.747,
+      "dev_validation_low_rul_mae_mean": 5.043,
+      "test_seed42": {
+        "rmse": 25.282,
+        "mae": 18.305,
+        "low_rul_mae": 4.998
+      }
+    },
+    "jax_seeds": [
+      {
+        "seed": 7,
+        "dev_validation": {
+          "n": 3913,
+          "rmse": 42.39638057182995,
+          "mae": 26.99873000745997,
+          "nasa_score": 65081635.9345049,
+          "low_rul_mae": 5.209988027531822,
+          "low_rul_count": 620,
+          "negative_raw_predictions": 11
+        },
+        "test": {
+          "n": 100,
+          "rmse": 21.600074668183723,
+          "mae": 15.609151067316102,
+          "nasa_score": 4450.338739880575,
+          "low_rul_mae": 4.376264328640566,
+          "low_rul_count": 25,
+          "negative_raw_predictions": 0
+        }
+      },
+      {
+        "seed": 42,
+        "dev_validation": {
+          "n": 3913,
+          "rmse": 41.04567551521049,
+          "mae": 26.151662987113998,
+          "nasa_score": 65697212.42452521,
+          "low_rul_mae": 4.775440479624118,
+          "low_rul_count": 620,
+          "negative_raw_predictions": 3
+        },
+        "test": {
+          "n": 100,
+          "rmse": 24.35558585779368,
+          "mae": 17.462256816476586,
+          "nasa_score": 6188.462320341629,
+          "low_rul_mae": 3.9963553907818268,
+          "low_rul_count": 25,
+          "negative_raw_predictions": 0
+        }
+      },
+      {
+        "seed": 77,
+        "dev_validation": {
+          "n": 3913,
+          "rmse": 39.84646820199108,
+          "mae": 26.305882243089982,
+          "nasa_score": 31408768.96889344,
+          "low_rul_mae": 5.476778588596155,
+          "low_rul_count": 620,
+          "negative_raw_predictions": 0
+        },
+        "test": {
+          "n": 100,
+          "rmse": 25.61315156605688,
+          "mae": 19.251486279545638,
+          "nasa_score": 7684.031280871613,
+          "low_rul_mae": 5.392182659252794,
+          "low_rul_count": 25,
+          "negative_raw_predictions": 0
+        }
+      }
+    ],
+    "jax_dev_validation_mean": {
+      "mae": 26.485425079221315,
+      "rmse": 41.09617476301051,
+      "low_rul_mae": 5.154069031917365
+    },
+    "jax_test_seed42": {
+      "n": 100,
+      "rmse": 24.35558585779368,
+      "mae": 17.462256816476586,
+      "nasa_score": 6188.462320341629,
+      "low_rul_mae": 3.9963553907818268,
+      "low_rul_count": 25,
+      "negative_raw_predictions": 0
+    }
+  },
+  "cv_grouped_5fold_truncated_endpoints": {
+    "rmse": 18.578739406400924,
+    "mae": 14.22091188835868,
+    "nasa_score": 1173.1178846162761,
+    "low_rul_mae": 5.034587031387962,
+    "rmse_raw_truth": 26.39902819108759,
+    "rmse_fold_sd": 1.5677222132436355,
+    "epochs_selected": [
+      14,
+      14,
+      17,
+      15,
+      10
+    ]
+  },
+  "test_units_1_80_capped": {
+    "rmse": 15.342986981663037,
+    "mae": 11.259207210595823,
+    "nasa_score": 430.4792624311531,
+    "low_rul_mae": 3.7776882483387837,
+    "rmse_seed_min": 14.802081174726652,
+    "rmse_seed_max": 15.885681947429557,
+    "epochs_selected": [
+      14,
+      16,
+      15
+    ]
+  },
+  "test_units_1_100_capped_refit": {
+    "rmse": 15.635140912110202,
+    "mae": 11.5373164675712,
+    "nasa_score": 457.10829545812953,
+    "low_rul_mae": 3.696619991882909,
+    "rmse_seed_min": 15.30071807278556,
+    "rmse_seed_max": 15.972070888906362,
+    "rmse_bootstrap_95ci_seed7": [
+      12.909131177467474,
+      17.572074294986862
+    ],
+    "epochs_selected": [
+      10,
+      13,
+      9
+    ]
+  }
+}

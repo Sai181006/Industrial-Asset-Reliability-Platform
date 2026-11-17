@@ -153,3 +153,47 @@ def build_samples(
         unit_ids=np.asarray(owners, dtype=np.int32),
         end_cycles=np.asarray(cycles, dtype=np.int32),
     )
+
+
+def build_sequences(
+    frame: pd.DataFrame,
+    unit_ids: Sequence[int],
+    columns: Sequence[str],
+    endpoints: Endpoints = "all",
+    window_length: int = WINDOW_LENGTH,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Return raw (samples, window, features) sequences plus RUL, unit ids and end cycles.
+
+    Uses the same endpoint rules as ``build_samples``. RUL is NaN when the frame
+    has no ``rul`` column (the official test frame).
+    """
+    has_rul = "rul" in frame.columns
+    windows, rul, owners, cycles = [], [], [], []
+    for unit_id in unit_ids:
+        unit = frame[frame["unit_id"] == unit_id].sort_values("cycle")
+        if len(unit) < window_length:
+            raise ValueError(f"Unit {unit_id} has fewer than {window_length} cycles")
+        values = unit[list(columns)].to_numpy(dtype=np.float32)
+        if endpoints == "all":
+            ends = range(window_length - 1, len(unit))
+        elif endpoints == "last":
+            ends = [len(unit) - 1]
+        elif isinstance(endpoints, Mapping):
+            ends = endpoints[int(unit_id)]
+        else:
+            raise ValueError("endpoints must be 'all', 'last', or a mapping")
+        for end in ends:
+            if end < window_length - 1 or end >= len(unit):
+                raise ValueError(f"Endpoint {end} is invalid for unit {unit_id}")
+            windows.append(values[end - window_length + 1 : end + 1])
+            rul.append(float(unit["rul"].iloc[end]) if has_rul else np.nan)
+            owners.append(int(unit_id))
+            cycles.append(int(unit["cycle"].iloc[end]))
+    if not windows:
+        raise ValueError("No sequences were created")
+    return (
+        np.stack(windows),
+        np.asarray(rul, dtype=np.float64),
+        np.asarray(owners, dtype=np.int32),
+        np.asarray(cycles, dtype=np.int32),
+    )

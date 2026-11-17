@@ -27,7 +27,7 @@ compact GRU model behind a synchronous FastAPI and SQLAlchemy backend.
 
 All rows are scored on the official FD001 test endpoints (100 engines) with one
 shared protocol; see [`docs/EVALUATION_RESULTS.md`](docs/EVALUATION_RESULTS.md).
-Models other than the last row are trained on units 1-80, like the GRU.
+Models other than the refit row are trained on units 1-80, like the GRU.
 
 | Model | Features | RUL target | Test RMSE | Test MAE | NASA score |
 |---|---|---|---:|---:|---:|
@@ -38,9 +38,13 @@ Models other than the last row are trained on units 1-80, like the GRU.
 | **Same, refit on all 100 engines (selected by CV)** | 14 sensors | capped at 125 | **14.35** | **10.76** | **287** |
 
 The refit model's RMSE has a bootstrap 95% interval of 12.0-16.5. The promoted GRU
+| Experimental GRU (JAX stand-in, mean of 3 seeds) | 14 sensors | capped at 125 | 15.34 | 11.26 | 430 |
 does not beat simple tree models on this protocol, and the backend still serves it.
 Earlier validation tables in `docs/GRU_RESULTS.md` and `docs/BASELINE_RESULTS.md`
 use different row sets and are not comparable with this table.
+Giving the same GRU capped targets and the 14 cleaned sensors cuts its test RMSE from 25.3 to 15.3 but
+still does not beat the trees (see [`docs/GRU_AND_THRESHOLD_EXPERIMENTS.md`](docs/GRU_AND_THRESHOLD_EXPERIMENTS.md)).
+
 
 ## System flow
 

@@ -1,0 +1,1094 @@
+{
+  "scenario": {
+    "failure_cost_ratio": 10.0,
+    "lead": 5,
+    "note": "OOF predictions; tau/m chosen cross-fold; costs illustrative"
+  },
+  "E1_margin_rule_hgb": {
+    "lead0": {
+      "best_margin": 8,
+      "best": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 7.51,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19880,
+        "cost_per_1000_cycles": 5.030181086519114
+      },
+      "margin0": {
+        "engines": 100,
+        "failures": 93,
+        "failures_per_100": 93.0,
+        "planned": 7,
+        "mean_unused_life": 1.4285714285714286,
+        "total_cost": 937.0,
+        "total_operating_cycles": 20621,
+        "cost_per_1000_cycles": 45.43911546481742
+      },
+      "tau10_default": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 9.6,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19671,
+        "cost_per_1000_cycles": 5.083625641807737
+      },
+      "cost_by_margin": {
+        "0": 45.44,
+        "1": 38.07,
+        "2": 27.23,
+        "3": 18.1,
+        "4": 10.24,
+        "5": 7.17,
+        "6": 5.87,
+        "7": 5.45,
+        "8": 5.03,
+        "9": 5.06,
+        "10": 5.08,
+        "11": 5.11,
+        "12": 5.13,
+        "13": 5.16,
+        "14": 5.2,
+        "15": 5.22,
+        "16": 5.26,
+        "17": 5.28,
+        "18": 5.31,
+        "19": 5.35,
+        "20": 5.37,
+        "21": 5.4,
+        "22": 5.43,
+        "23": 5.47,
+        "24": 5.49,
+        "25": 5.53,
+        "26": 5.56,
+        "27": 5.6,
+        "28": 5.64,
+        "29": 5.67,
+        "30": 5.7
+      },
+      "failures_by_margin": {
+        "0": 93.0,
+        "1": 76.0,
+        "2": 51.0,
+        "3": 30.0,
+        "4": 12.0,
+        "5": 5.0,
+        "6": 2.0,
+        "7": 1.0,
+        "8": 0.0,
+        "9": 0.0,
+        "10": 0.0,
+        "11": 0.0,
+        "12": 0.0,
+        "13": 0.0,
+        "14": 0.0,
+        "15": 0.0,
+        "16": 0.0,
+        "17": 0.0,
+        "18": 0.0,
+        "19": 0.0,
+        "20": 0.0,
+        "21": 0.0,
+        "22": 0.0,
+        "23": 0.0,
+        "24": 0.0,
+        "25": 0.0,
+        "26": 0.0,
+        "27": 0.0,
+        "28": 0.0,
+        "29": 0.0,
+        "30": 0.0
+      }
+    },
+    "lead5": {
+      "best_margin": 9,
+      "best": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 8.88,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19743,
+        "cost_per_1000_cycles": 5.065086359722433
+      },
+      "margin0": {
+        "engines": 100,
+        "failures": 75,
+        "failures_per_100": 75.0,
+        "planned": 25,
+        "mean_unused_life": 2.28,
+        "total_cost": 775.0,
+        "total_operating_cycles": 20574,
+        "cost_per_1000_cycles": 37.66890249829883
+      },
+      "tau10_default": {
+        "engines": 100,
+        "failures": 7,
+        "failures_per_100": 7.0,
+        "planned": 93,
+        "mean_unused_life": 5.0,
+        "total_cost": 163.0,
+        "total_operating_cycles": 20166,
+        "cost_per_1000_cycles": 8.082911831796093
+      },
+      "cost_by_margin": {
+        "0": 37.67,
+        "1": 27.24,
+        "2": 19.42,
+        "3": 15.52,
+        "4": 11.6,
+        "5": 8.08,
+        "6": 6.78,
+        "7": 6.36,
+        "8": 5.49,
+        "9": 5.07,
+        "10": 5.09,
+        "11": 5.12,
+        "12": 5.15,
+        "13": 5.17,
+        "14": 5.21,
+        "15": 5.23,
+        "16": 5.26,
+        "17": 5.29,
+        "18": 5.32,
+        "19": 5.35,
+        "20": 5.38,
+        "21": 5.41,
+        "22": 5.44,
+        "23": 5.48,
+        "24": 5.51,
+        "25": 5.54,
+        "26": 5.57,
+        "27": 5.59,
+        "28": 5.63,
+        "29": 5.66,
+        "30": 5.69
+      },
+      "failures_by_margin": {
+        "0": 75.0,
+        "1": 51.0,
+        "2": 33.0,
+        "3": 24.0,
+        "4": 15.0,
+        "5": 7.0,
+        "6": 4.0,
+        "7": 3.0,
+        "8": 1.0,
+        "9": 0.0,
+        "10": 0.0,
+        "11": 0.0,
+        "12": 0.0,
+        "13": 0.0,
+        "14": 0.0,
+        "15": 0.0,
+        "16": 0.0,
+        "17": 0.0,
+        "18": 0.0,
+        "19": 0.0,
+        "20": 0.0,
+        "21": 0.0,
+        "22": 0.0,
+        "23": 0.0,
+        "24": 0.0,
+        "25": 0.0,
+        "26": 0.0,
+        "27": 0.0,
+        "28": 0.0,
+        "29": 0.0,
+        "30": 0.0
+      }
+    },
+    "lead10": {
+      "best_margin": 11,
+      "best": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 11.23,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19508,
+        "cost_per_1000_cycles": 5.12610211195407
+      },
+      "margin0": {
+        "engines": 100,
+        "failures": 66,
+        "failures_per_100": 66.0,
+        "planned": 34,
+        "mean_unused_life": 2.823529411764706,
+        "total_cost": 694.0,
+        "total_operating_cycles": 20535,
+        "cost_per_1000_cycles": 33.79595812028244
+      },
+      "tau10_default": {
+        "engines": 100,
+        "failures": 66,
+        "failures_per_100": 66.0,
+        "planned": 34,
+        "mean_unused_life": 2.823529411764706,
+        "total_cost": 694.0,
+        "total_operating_cycles": 20535,
+        "cost_per_1000_cycles": 33.79595812028244
+      },
+      "cost_by_margin": {
+        "0": 33.8,
+        "1": 25.97,
+        "2": 19.44,
+        "3": 14.21,
+        "4": 10.28,
+        "5": 7.65,
+        "6": 6.34,
+        "7": 5.92,
+        "8": 5.5,
+        "9": 5.54,
+        "10": 5.56,
+        "11": 5.13,
+        "12": 5.15,
+        "13": 5.18,
+        "14": 5.21,
+        "15": 5.24,
+        "16": 5.27,
+        "17": 5.3,
+        "18": 5.34,
+        "19": 5.37,
+        "20": 5.4,
+        "21": 5.42,
+        "22": 5.44,
+        "23": 5.48,
+        "24": 5.51,
+        "25": 5.53,
+        "26": 5.56,
+        "27": 5.59,
+        "28": 5.63,
+        "29": 5.68,
+        "30": 5.71
+      },
+      "failures_by_margin": {
+        "0": 66.0,
+        "1": 48.0,
+        "2": 33.0,
+        "3": 21.0,
+        "4": 12.0,
+        "5": 6.0,
+        "6": 3.0,
+        "7": 2.0,
+        "8": 1.0,
+        "9": 1.0,
+        "10": 1.0,
+        "11": 0.0,
+        "12": 0.0,
+        "13": 0.0,
+        "14": 0.0,
+        "15": 0.0,
+        "16": 0.0,
+        "17": 0.0,
+        "18": 0.0,
+        "19": 0.0,
+        "20": 0.0,
+        "21": 0.0,
+        "22": 0.0,
+        "23": 0.0,
+        "24": 0.0,
+        "25": 0.0,
+        "26": 0.0,
+        "27": 0.0,
+        "28": 0.0,
+        "29": 0.0,
+        "30": 0.0
+      }
+    }
+  },
+  "E2_persistence_hgb": {
+    "lead0_k1": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 1,
+        "failures_per_100": 1.0,
+        "planned": 99,
+        "mean_unused_life": 7.292929292929293,
+        "total_cost": 109.0,
+        "total_operating_cycles": 19909,
+        "cost_per_1000_cycles": 5.474910844341755
+      },
+      "chosen_per_fold": [
+        8,
+        8,
+        7,
+        8,
+        8
+      ],
+      "best_in_sample_tau": 8,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 7.51,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19880,
+        "cost_per_1000_cycles": 5.030181086519114
+      },
+      "tau_within_5pct_of_best": [
+        8,
+        16
+      ]
+    },
+    "lead0_k2": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 1,
+        "failures_per_100": 1.0,
+        "planned": 99,
+        "mean_unused_life": 6.878787878787879,
+        "total_cost": 109.0,
+        "total_operating_cycles": 19950,
+        "cost_per_1000_cycles": 5.4636591478696745
+      },
+      "chosen_per_fold": [
+        9,
+        8,
+        9,
+        9,
+        9
+      ],
+      "best_in_sample_tau": 9,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 7.09,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19922,
+        "cost_per_1000_cycles": 5.019576347756249
+      },
+      "tau_within_5pct_of_best": [
+        9,
+        18
+      ]
+    },
+    "lead0_k3": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 2,
+        "failures_per_100": 2.0,
+        "planned": 98,
+        "mean_unused_life": 7.642857142857143,
+        "total_cost": 118.0,
+        "total_operating_cycles": 19882,
+        "cost_per_1000_cycles": 5.935016597927774
+      },
+      "chosen_per_fold": [
+        11,
+        9,
+        11,
+        11,
+        11
+      ],
+      "best_in_sample_tau": 11,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 7.94,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19837,
+        "cost_per_1000_cycles": 5.041084841457882
+      },
+      "tau_within_5pct_of_best": [
+        11,
+        20
+      ]
+    },
+    "lead0_k5": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 2,
+        "failures_per_100": 2.0,
+        "planned": 98,
+        "mean_unused_life": 8.979591836734693,
+        "total_cost": 118.0,
+        "total_operating_cycles": 19751,
+        "cost_per_1000_cycles": 5.974381043997773
+      },
+      "chosen_per_fold": [
+        15,
+        12,
+        15,
+        15,
+        15
+      ],
+      "best_in_sample_tau": 15,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 9.61,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19670,
+        "cost_per_1000_cycles": 5.083884087442806
+      },
+      "tau_within_5pct_of_best": [
+        15,
+        24
+      ]
+    },
+    "lead5_k1": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 1,
+        "failures_per_100": 1.0,
+        "planned": 99,
+        "mean_unused_life": 8.676767676767676,
+        "total_cost": 109.0,
+        "total_operating_cycles": 19772,
+        "cost_per_1000_cycles": 5.51284644952458
+      },
+      "chosen_per_fold": [
+        14,
+        13,
+        14,
+        14,
+        14
+      ],
+      "best_in_sample_tau": 14,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 8.88,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19743,
+        "cost_per_1000_cycles": 5.065086359722433
+      },
+      "tau_within_5pct_of_best": [
+        14,
+        22
+      ]
+    },
+    "lead5_k2": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 8.17,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19814,
+        "cost_per_1000_cycles": 5.04693650953871
+      },
+      "chosen_per_fold": [
+        15,
+        15,
+        15,
+        15,
+        15
+      ],
+      "best_in_sample_tau": 15,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 8.17,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19814,
+        "cost_per_1000_cycles": 5.04693650953871
+      },
+      "tau_within_5pct_of_best": [
+        15,
+        24
+      ]
+    },
+    "lead5_k3": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 8.08,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19823,
+        "cost_per_1000_cycles": 5.0446451092165665
+      },
+      "chosen_per_fold": [
+        16,
+        16,
+        16,
+        16,
+        16
+      ],
+      "best_in_sample_tau": 16,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 8.08,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19823,
+        "cost_per_1000_cycles": 5.0446451092165665
+      },
+      "tau_within_5pct_of_best": [
+        16,
+        25
+      ]
+    },
+    "lead5_k5": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 1,
+        "failures_per_100": 1.0,
+        "planned": 99,
+        "mean_unused_life": 9.05050505050505,
+        "total_cost": 109.0,
+        "total_operating_cycles": 19735,
+        "cost_per_1000_cycles": 5.523182163668609
+      },
+      "chosen_per_fold": [
+        18,
+        20,
+        20,
+        20,
+        20
+      ],
+      "best_in_sample_tau": 20,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 9.41,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19690,
+        "cost_per_1000_cycles": 5.078720162519045
+      },
+      "tau_within_5pct_of_best": [
+        20,
+        29
+      ]
+    },
+    "lead10_k1": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 1,
+        "failures_per_100": 1.0,
+        "planned": 99,
+        "mean_unused_life": 10.656565656565656,
+        "total_cost": 109.0,
+        "total_operating_cycles": 19576,
+        "cost_per_1000_cycles": 5.568042501021659
+      },
+      "chosen_per_fold": [
+        18,
+        21,
+        21,
+        21,
+        21
+      ],
+      "best_in_sample_tau": 21,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 11.23,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19508,
+        "cost_per_1000_cycles": 5.12610211195407
+      },
+      "tau_within_5pct_of_best": [
+        21,
+        29
+      ]
+    },
+    "lead10_k2": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 9.41,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19690,
+        "cost_per_1000_cycles": 5.078720162519045
+      },
+      "chosen_per_fold": [
+        21,
+        21,
+        21,
+        21,
+        21
+      ],
+      "best_in_sample_tau": 21,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 9.41,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19690,
+        "cost_per_1000_cycles": 5.078720162519045
+      },
+      "tau_within_5pct_of_best": [
+        21,
+        29
+      ]
+    },
+    "lead10_k3": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 8.15,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19816,
+        "cost_per_1000_cycles": 5.0464271295922485
+      },
+      "chosen_per_fold": [
+        21,
+        21,
+        21,
+        21,
+        21
+      ],
+      "best_in_sample_tau": 21,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 8.15,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19816,
+        "cost_per_1000_cycles": 5.0464271295922485
+      },
+      "tau_within_5pct_of_best": [
+        21,
+        30
+      ]
+    },
+    "lead10_k5": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 2,
+        "failures_per_100": 2.0,
+        "planned": 98,
+        "mean_unused_life": 8.204081632653061,
+        "total_cost": 118.0,
+        "total_operating_cycles": 19827,
+        "cost_per_1000_cycles": 5.951480304635093
+      },
+      "chosen_per_fold": [
+        24,
+        24,
+        24,
+        24,
+        23
+      ],
+      "best_in_sample_tau": 24,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 8.17,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19814,
+        "cost_per_1000_cycles": 5.04693650953871
+      },
+      "tau_within_5pct_of_best": [
+        24,
+        33
+      ]
+    }
+  },
+  "E4_model_robustness": {
+    "hgb_ratio10": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 1,
+        "failures_per_100": 1.0,
+        "planned": 99,
+        "mean_unused_life": 8.676767676767676,
+        "total_cost": 109.0,
+        "total_operating_cycles": 19772,
+        "cost_per_1000_cycles": 5.51284644952458
+      },
+      "chosen_per_fold": [
+        14,
+        13,
+        14,
+        14,
+        14
+      ],
+      "best_in_sample_tau": 14,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 8.88,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19743,
+        "cost_per_1000_cycles": 5.065086359722433
+      },
+      "tau_within_5pct_of_best": [
+        14,
+        22
+      ]
+    },
+    "hgb_ratio20": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 1,
+        "failures_per_100": 1.0,
+        "planned": 99,
+        "mean_unused_life": 8.676767676767676,
+        "total_cost": 119.0,
+        "total_operating_cycles": 19772,
+        "cost_per_1000_cycles": 6.018612178838762
+      },
+      "chosen_per_fold": [
+        14,
+        13,
+        14,
+        14,
+        14
+      ],
+      "best_in_sample_tau": 14,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 8.88,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19743,
+        "cost_per_1000_cycles": 5.065086359722433
+      },
+      "tau_within_5pct_of_best": [
+        14,
+        22
+      ]
+    },
+    "rf_ratio10": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 1,
+        "failures_per_100": 1.0,
+        "planned": 99,
+        "mean_unused_life": 6.393939393939394,
+        "total_cost": 109.0,
+        "total_operating_cycles": 19998,
+        "cost_per_1000_cycles": 5.450545054505451
+      },
+      "chosen_per_fold": [
+        12,
+        13,
+        13,
+        13,
+        13
+      ],
+      "best_in_sample_tau": 13,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 6.57,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19974,
+        "cost_per_1000_cycles": 5.006508460999299
+      },
+      "tau_within_5pct_of_best": [
+        13,
+        23
+      ]
+    },
+    "rf_ratio20": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 1,
+        "failures_per_100": 1.0,
+        "planned": 99,
+        "mean_unused_life": 6.393939393939394,
+        "total_cost": 119.0,
+        "total_operating_cycles": 19998,
+        "cost_per_1000_cycles": 5.95059505950595
+      },
+      "chosen_per_fold": [
+        12,
+        13,
+        13,
+        13,
+        13
+      ],
+      "best_in_sample_tau": 13,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 6.57,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19974,
+        "cost_per_1000_cycles": 5.006508460999299
+      },
+      "tau_within_5pct_of_best": [
+        13,
+        23
+      ]
+    },
+    "gru_ratio10": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 8.9,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19741,
+        "cost_per_1000_cycles": 5.0655995137024465
+      },
+      "chosen_per_fold": [
+        15,
+        15,
+        15,
+        15,
+        15
+      ],
+      "best_in_sample_tau": 15,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 8.9,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19741,
+        "cost_per_1000_cycles": 5.0655995137024465
+      },
+      "tau_within_5pct_of_best": [
+        15,
+        25
+      ]
+    },
+    "gru_ratio20": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 8.9,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19741,
+        "cost_per_1000_cycles": 5.0655995137024465
+      },
+      "chosen_per_fold": [
+        15,
+        15,
+        15,
+        15,
+        15
+      ],
+      "best_in_sample_tau": 15,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 8.9,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19741,
+        "cost_per_1000_cycles": 5.0655995137024465
+      },
+      "tau_within_5pct_of_best": [
+        15,
+        25
+      ]
+    }
+  },
+  "E5_uncertainty_trigger_rf": {
+    "z0.0": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 1,
+        "failures_per_100": 1.0,
+        "planned": 99,
+        "mean_unused_life": 6.393939393939394,
+        "total_cost": 109.0,
+        "total_operating_cycles": 19998,
+        "cost_per_1000_cycles": 5.450545054505451
+      },
+      "chosen_per_fold": [
+        12,
+        13,
+        13,
+        13,
+        13
+      ],
+      "best_in_sample_tau": 13,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 6.57,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19974,
+        "cost_per_1000_cycles": 5.006508460999299
+      },
+      "tau_within_5pct_of_best": [
+        13,
+        23
+      ]
+    },
+    "z0.5": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 1,
+        "failures_per_100": 1.0,
+        "planned": 99,
+        "mean_unused_life": 5.909090909090909,
+        "total_cost": 109.0,
+        "total_operating_cycles": 20046,
+        "cost_per_1000_cycles": 5.437493764342014
+      },
+      "chosen_per_fold": [
+        9,
+        10,
+        10,
+        10,
+        10
+      ],
+      "best_in_sample_tau": 10,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 6.13,
+        "total_cost": 100.0,
+        "total_operating_cycles": 20018,
+        "cost_per_1000_cycles": 4.995504046358278
+      },
+      "tau_within_5pct_of_best": [
+        10,
+        18
+      ]
+    },
+    "z1.0": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 5.66,
+        "total_cost": 100.0,
+        "total_operating_cycles": 20065,
+        "cost_per_1000_cycles": 4.9838026414154
+      },
+      "chosen_per_fold": [
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "best_in_sample_tau": 7,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 5.66,
+        "total_cost": 100.0,
+        "total_operating_cycles": 20065,
+        "cost_per_1000_cycles": 4.9838026414154
+      },
+      "tau_within_5pct_of_best": [
+        7,
+        14
+      ]
+    },
+    "z1.5": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 1,
+        "failures_per_100": 1.0,
+        "planned": 99,
+        "mean_unused_life": 7.6767676767676765,
+        "total_cost": 109.0,
+        "total_operating_cycles": 19871,
+        "cost_per_1000_cycles": 5.485380705550803
+      },
+      "chosen_per_fold": [
+        6,
+        6,
+        6,
+        6,
+        5
+      ],
+      "best_in_sample_tau": 6,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 8.01,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19830,
+        "cost_per_1000_cycles": 5.0428643469490675
+      },
+      "tau_within_5pct_of_best": [
+        6,
+        12
+      ]
+    },
+    "z2.0": {
+      "cross_fold": {
+        "engines": 100,
+        "failures": 1,
+        "failures_per_100": 1.0,
+        "planned": 99,
+        "mean_unused_life": 11.454545454545455,
+        "total_cost": 109.0,
+        "total_operating_cycles": 19497,
+        "cost_per_1000_cycles": 5.5906036826178385
+      },
+      "chosen_per_fold": [
+        4,
+        4,
+        4,
+        4,
+        3
+      ],
+      "best_in_sample_tau": 4,
+      "best_in_sample": {
+        "engines": 100,
+        "failures": 0,
+        "failures_per_100": 0.0,
+        "planned": 100,
+        "mean_unused_life": 11.75,
+        "total_cost": 100.0,
+        "total_operating_cycles": 19456,
+        "cost_per_1000_cycles": 5.139802631578948
+      },
+      "tau_within_5pct_of_best": [
+        4,
+        8
+      ]
+    }
+  }
+}
