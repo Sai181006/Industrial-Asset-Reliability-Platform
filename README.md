@@ -22,6 +22,8 @@ compact GRU model behind a synchronous FastAPI and SQLAlchemy backend.
 - Default-deny bearer authentication with viewer, operator, and admin roles.
 - Authenticated-actor audit fields for maintenance workflow changes.
 - Role-aware console actions for alert and work-order state transitions.
+- Atomic ingestion and asset-scoped PostgreSQL workflow locking with bounded transaction retries.
+- Isolated PostgreSQL concurrency tests and a reproducible local multi-asset benchmark.
 
 ## Model performance
 
@@ -36,17 +38,15 @@ Models other than the refit row are trained on units 1-80, like the GRU.
 | Random forest, window features | 14 sensors | capped at 125 | 13.47 | 10.17 | 246 |
 | Histogram gradient boosting, window features | 14 sensors | capped at 125 | 14.61 | 11.28 | 295 |
 | **Same, refit on all 100 engines (selected by CV)** | 14 sensors | capped at 125 | **14.35** | **10.76** | **287** |
+| Experimental GRU (JAX stand-in, mean of 3 seeds) | 14 sensors | capped at 125 | 15.34 | 11.26 | 430 |
 
 The refit model's RMSE has a bootstrap 95% interval of 12.0-16.5. The promoted GRU
-| Experimental GRU (JAX stand-in, mean of 3 seeds) | 14 sensors | capped at 125 | 15.34 | 11.26 | 430 |
 does not beat simple tree models on this protocol, and the backend still serves it.
-Earlier validation tables in `docs/GRU_RESULTS.md` and `docs/BASELINE_RESULTS.md`
-use different row sets and are not comparable with this table.
 Giving the same GRU capped targets and the 14 cleaned sensors cuts its test RMSE from 25.3 to 15.3 but
 still does not beat the trees (see [`docs/GRU_AND_THRESHOLD_EXPERIMENTS.md`](docs/GRU_AND_THRESHOLD_EXPERIMENTS.md)).
 
-
-## System flow
+Earlier validation tables in `docs/GRU_RESULTS.md` and `docs/BASELINE_RESULTS.md`
+use different row sets and are not comparable with this table.
 
 ## Maintenance-policy back-test
 
@@ -57,6 +57,8 @@ job and work orders take 5 cycles to execute. The default critical threshold of
 10 cycles is only safe when work orders execute almost immediately: with a
 5-cycle lead it fails 7 engines in 100. These costs are illustrative assumptions
 on simulated data. See [`docs/POLICY_BACKTEST.md`](docs/POLICY_BACKTEST.md).
+
+## System flow
 
 ```text
 Telemetry cycle
@@ -125,7 +127,8 @@ python scripts/replay_fd001.py --unit-id 81 --cycles-per-second 5
 ```
 
 Use `--cycles-per-second 0` for an unthrottled replay. Existing assets resume
-after their latest stored cycle. See
+after their latest stored cycle. Operators can replay registered assets; creating
+a missing asset requires an admin credential. See
 [`docs/ADJUSTABLE_REPLAY_SERVICE.md`](docs/ADJUSTABLE_REPLAY_SERVICE.md).
 Authentication configuration and the role matrix are documented in
 [`docs/AUTHENTICATION_AND_RBAC.md`](docs/AUTHENTICATION_AND_RBAC.md).
@@ -168,12 +171,11 @@ python scripts/run_fd001_baselines.py
 python scripts/analyze_fd001_sequences.py
 python scripts/train_fd001_gru.py
 python scripts/promote_fd001_gru.py
+python scripts/run_fd001_evaluation.py
+python scripts/run_fd001_policy_backtest.py
 ```
 
 The promoted model and its versioned inference manifest are stored in
-python scripts/run_fd001_evaluation.py
-python scripts/run_fd001_policy_backtest.py
-python scripts/run_fd001_evaluation.py
 `ml/artifacts/`.
 
 ## Run tests
@@ -185,6 +187,32 @@ pytest -q
 The suite covers dataset integrity, leakage-safe splits, model artifacts,
 official test-window construction, API validation, migrations, idempotent
 telemetry ingestion, prediction persistence, and maintenance workflows.
+
+## PostgreSQL concurrency validation
+
+Run from the repository root with the Python environment activated:
+
+```powershell
+docker compose -f deploy/docker-compose.postgres.yml up -d --wait
+$env:TEST_DATABASE_URL = 'postgresql+psycopg://reliability:reliability@127.0.0.1:5433/reliability'
+python -B -m pytest -q -ra -p no:cacheprovider
+python -B scripts/benchmark_postgres.py --assets 4 --cycles 240 --concurrency 4
+```
+
+The Compose credentials are disposable local defaults, not production credentials.
+PostgreSQL binds only to loopback port 5433. Tests and the benchmark migrate a
+unique schema and remove only that schema afterward; they do not migrate the
+application database. Without `TEST_DATABASE_URL`, PostgreSQL-specific checks
+explicitly skip. The benchmark accepts only a loopback PostgreSQL address.
+
+Stop the local service without removing its volume:
+
+```powershell
+docker compose -f deploy/docker-compose.postgres.yml stop
+```
+
+See [persistence hardening and measured results](docs/BACKEND_PERSISTENCE.md#postgresql-hardening-validation)
+for pool settings, migration compatibility, and benchmark boundaries.
 
 ## Dataset
 
@@ -206,4 +234,6 @@ not represented as measurements collected from a physical factory.
 - FD001 is simulated and covers one operating condition and fault mode.
 - Enterprise SSO and short-lived credential issuance are not implemented.
 - The console currently supports workflow transitions but not asset administration.
-- PostgreSQL concurrency/load testing and asynchronous processing are pending.
+- Local PostgreSQL concurrency validation is implemented; network/server load, soak testing, and production deployment remain pending.
+- Asynchronous processing, durable replay orchestration, and production monitoring remain pending.
+- Migration `0004` preserves historical predictions but cannot reconstruct their decision provenance. Retrying a pre-migration prediction returns HTTP 409 requiring reconciliation; no automatic reconciliation tool is provided.
