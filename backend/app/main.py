@@ -8,11 +8,12 @@ from datetime import datetime, timezone
 import os
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from backend.app.database import get_db
+from backend.app.database import atomic_mutation, get_db, is_duplicate_asset, lock_asset
 from backend.app.auth import Principal, authenticate, require_admin, require_operator
-from backend.app.decision import RiskThresholds, apply_decision
+from backend.app.decision import RiskThresholds, apply_decision, stored_decision
 from backend.app.inference import RULInferenceService
 from backend.app.models import Alert, Asset, Prediction, TelemetryPointRecord, WorkOrder
 from backend.app.schemas import (
@@ -84,6 +85,7 @@ def predict_rul_endpoint(
 
 
 @app.post("/v1/assets", response_model=AssetResponse, status_code=status.HTTP_201_CREATED)
+@atomic_mutation
 def create_asset(
     request: AssetCreate,
     db: Session = Depends(get_db),
@@ -93,7 +95,13 @@ def create_asset(
         raise HTTPException(status_code=409, detail="asset already exists")
     asset = Asset(id=request.asset_id, name=request.name)
     db.add(asset)
-    db.commit()
+    try:
+        db.flush()
+    except IntegrityError as error:
+        db.rollback()
+        if is_duplicate_asset(error, db) and db.get(Asset, request.asset_id) is not None:
+            raise HTTPException(status_code=409, detail="asset already exists") from error
+        raise
     return AssetResponse(asset_id=asset.id, name=asset.name)
 
 
@@ -147,17 +155,18 @@ def get_asset_detail(asset_id: str, db: Session = Depends(get_db)) -> AssetDetai
 
 
 @app.patch("/v1/assets/{asset_id}", response_model=AssetResponse)
+@atomic_mutation
 def update_asset(
     asset_id: str,
     request: AssetUpdate,
     db: Session = Depends(get_db),
     _principal: Principal = Depends(require_admin),
 ) -> AssetResponse:
-    asset = db.get(Asset, asset_id)
+    asset = lock_asset(db, asset_id)
     if asset is None:
         raise HTTPException(status_code=404, detail="asset not found")
     asset.name = request.name
-    db.commit()
+    db.flush()
     return AssetResponse(asset_id=asset.id, name=asset.name)
 
 
@@ -203,6 +212,7 @@ def _same_telemetry(record: TelemetryPointRecord, point: TelemetryPoint) -> bool
 
 
 @app.post("/v1/assets/{asset_id}/telemetry", response_model=TelemetryIngestResponse)
+@atomic_mutation
 def ingest_telemetry(
     asset_id: str,
     point: TelemetryPoint,
@@ -211,7 +221,7 @@ def ingest_telemetry(
     thresholds: RiskThresholds = Depends(get_risk_thresholds),
     _principal: Principal = Depends(require_operator),
 ) -> TelemetryIngestResponse:
-    if db.get(Asset, asset_id) is None:
+    if lock_asset(db, asset_id) is None:
         raise HTTPException(status_code=404, detail="asset not found")
 
     existing = db.scalar(
@@ -226,7 +236,7 @@ def ingest_telemetry(
     if existing is None:
         existing = TelemetryPointRecord(asset_id=asset_id, **point.model_dump())
         db.add(existing)
-        db.commit()
+        db.flush()
 
     latest = list(
         db.scalars(
@@ -272,8 +282,11 @@ def ingest_telemetry(
                     model_version=calculated.model_version,
                 )
                 db.add(prediction)
-                db.commit()
-            decision = apply_decision(db, prediction, thresholds)
+                db.flush()
+                decision = apply_decision(db, prediction, thresholds)
+            else:
+                db.refresh(prediction)
+                decision = stored_decision(db, prediction)
             prediction_response = RULPredictionResponse(
                 asset_id=prediction.asset_id,
                 window_start_cycle=prediction.window_start_cycle,
@@ -329,28 +342,48 @@ def list_alerts(
     return [AlertResponse.model_validate(alert, from_attributes=True) for alert in alerts]
 
 
+def _lock_workflow(db: Session, model: type[Alert] | type[WorkOrder], record_id: int, label: str):
+    asset_id = db.scalar(select(model.asset_id).where(model.id == record_id))
+    if asset_id is None or lock_asset(db, asset_id) is None:
+        raise HTTPException(status_code=404, detail=f"{label} not found")
+    record = db.scalar(
+        select(model)
+        .where(model.id == record_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if record is None:
+        raise HTTPException(status_code=404, detail=f"{label} not found")
+    return record
+
+
 @app.patch("/v1/alerts/{alert_id}", response_model=AlertResponse)
+@atomic_mutation
 def update_alert(
     alert_id: int,
     request: AlertStatusUpdate,
     db: Session = Depends(get_db),
     principal: Principal = Depends(require_operator),
 ) -> AlertResponse:
-    alert = db.get(Alert, alert_id)
-    if alert is None:
-        raise HTTPException(status_code=404, detail="alert not found")
+    alert = _lock_workflow(db, Alert, alert_id, "alert")
     desired = request.status.upper()
     if desired != alert.status and desired not in ALERT_TRANSITIONS.get(alert.status, set()):
         raise HTTPException(status_code=409, detail="invalid alert state transition")
     if desired == "RESOLVED":
-        work_order = db.scalar(select(WorkOrder).where(WorkOrder.alert_id == alert.id))
+        work_order = db.scalar(
+            select(WorkOrder)
+            .where(WorkOrder.alert_id == alert.id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
         if work_order is not None and work_order.status != "RESOLVED":
             raise HTTPException(status_code=409, detail="resolve the work order before the alert")
         alert.active = False
-        alert.resolved_at = datetime.now(timezone.utc)
+        if alert.status != "RESOLVED":
+            alert.resolved_at = datetime.now(timezone.utc)
     alert.status = desired
     alert.last_updated_by = principal.subject
-    db.commit()
+    db.flush()
     return AlertResponse.model_validate(alert, from_attributes=True)
 
 
@@ -378,15 +411,14 @@ def list_work_orders(
 
 
 @app.patch("/v1/work-orders/{work_order_id}", response_model=WorkOrderResponse)
+@atomic_mutation
 def update_work_order(
     work_order_id: int,
     request: WorkOrderUpdate,
     db: Session = Depends(get_db),
     principal: Principal = Depends(require_operator),
 ) -> WorkOrderResponse:
-    order = db.get(WorkOrder, work_order_id)
-    if order is None:
-        raise HTTPException(status_code=404, detail="work order not found")
+    order = _lock_workflow(db, WorkOrder, work_order_id, "work order")
     desired = request.status.upper()
     if desired != order.status and desired not in WORK_ORDER_TRANSITIONS.get(order.status, set()):
         raise HTTPException(status_code=409, detail="invalid work-order state transition")
@@ -396,11 +428,11 @@ def update_work_order(
         order.assigned_to = request.assigned_to
     if request.notes is not None:
         order.notes = request.notes
-    if desired == "RESOLVED":
+    if desired == "RESOLVED" and order.status != "RESOLVED":
         order.resolved_at = datetime.now(timezone.utc)
     order.status = desired
     order.last_updated_by = principal.subject
-    db.commit()
+    db.flush()
     return WorkOrderResponse.model_validate(order, from_attributes=True)
 
 

@@ -7,6 +7,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from time import monotonic
+from urllib.parse import quote
 from uuid import uuid4
 
 import httpx
@@ -71,14 +72,21 @@ async def replay_trajectory(
     if bearer_token:
         client.headers["Authorization"] = f"Bearer {bearer_token}"
     started = datetime.now(timezone.utc)
-    asset_response = await client.post("/v1/assets", json={"asset_id": asset_id, "name": asset_name})
-    if asset_response.status_code not in (201, 409):
-        asset_response.raise_for_status()
+    asset_path = f"/v1/assets/{quote(asset_id, safe='')}"
+    detail = await client.get(asset_path)
+    if detail.status_code == 404:
+        asset_response = await client.post("/v1/assets", json={"asset_id": asset_id, "name": asset_name})
+        if asset_response.status_code == 409:
+            detail = await client.get(asset_path)
+            detail.raise_for_status()
+        else:
+            asset_response.raise_for_status()
+            detail = None
+    else:
+        detail.raise_for_status()
 
     latest_cycle = 0
-    if resume and asset_response.status_code == 409:
-        detail = await client.get(f"/v1/assets/{asset_id}")
-        detail.raise_for_status()
+    if resume and detail is not None:
         latest_cycle = detail.json()["latest_cycle"] or 0
 
     pending = [point for point in trajectory if int(point["cycle"]) > latest_cycle]
@@ -92,7 +100,7 @@ async def replay_trajectory(
             delay = next_submission - monotonic()
             if delay > 0:
                 await asyncio.sleep(delay)
-        response = await client.post(f"/v1/assets/{asset_id}/telemetry", json=point)
+        response = await client.post(f"{asset_path}/telemetry", json=point)
         response.raise_for_status()
         if response.json().get("prediction") is not None:
             predictions += 1

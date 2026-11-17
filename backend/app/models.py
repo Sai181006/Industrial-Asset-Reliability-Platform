@@ -72,6 +72,13 @@ class Prediction(Base):
     model_id: Mapped[str] = mapped_column(String(128))
     model_version: Mapped[str] = mapped_column(String(64))
     risk_severity: Mapped[str] = mapped_column(String(16), default="NORMAL")
+    decision_processed: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+    decision_alert_id: Mapped[int | None] = mapped_column(
+        ForeignKey("alerts.id", name="fk_prediction_decision_alert", use_alter=True), nullable=True
+    )
+    decision_work_order_id: Mapped[int | None] = mapped_column(
+        ForeignKey("work_orders.id", name="fk_prediction_decision_work_order", use_alter=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     asset: Mapped[Asset] = relationship(back_populates="predictions")
 
