@@ -14,7 +14,7 @@ The project's focus is evaluation discipline: every model and policy claim below
 | Maintenance policy back-test (100 engines, out-of-fold predictions) | **35% lower cost** than the best fixed-interval schedule (95% CI 19.8–48.3%), 89% lower than run-to-failure, within 13% of a perfect-foresight lower bound |
 | Work-order threshold finding | Raising the critical threshold from 10 to 15 cycles cut cost from 8.08 to 5.09 per 1,000 cycles and failures from 7 to 0 per 100 engines (5-cycle execution lead) |
 | Backend concurrency (PostgreSQL 17, 4 concurrent assets) | 960 telemetry requests, **0 errors**, 85 requests/s, p95 latency 64 ms |
-| Engineering | 15 REST endpoints, 3 roles, 5 Alembic migrations, 260 automated tests, about 7,000 lines of Python |
+| Engineering | 15 REST endpoints, 3 roles, 5 Alembic migrations, 266 automated tests, about 7,000 lines of Python |
 
 The data is simulated, the maintenance costs are illustrative assumptions, and the concurrency benchmark is a local in-process run. See [Limitations](#limitations).
 
@@ -80,12 +80,13 @@ A trigger of the execution lead plus about 10 cycles is close to optimal for eve
 ## Backend and engineering
 
 - **API:** 15 endpoints covering assets, telemetry, predictions, alerts and work orders, with strict request validation (exactly 30 consecutive cycles, unknown fields rejected). OpenAPI docs are served at `/docs`.
+- **Operations:** the model is loaded and verified at startup (a bad artifact stops the app instead of failing the first request), `GET /health` is an unauthenticated readiness check that reports the database and the loaded model version, alert, work-order and transaction-retry events are logged, and the alert and work-order lists are capped by a `limit` parameter (newest items, default 200).
 - **Security:** bearer tokens stored only as SHA-256 digests and compared in constant time, with viewer, operator and admin roles. See [`docs/AUTHENTICATION_AND_RBAC.md`](docs/AUTHENTICATION_AND_RBAC.md).
 - **Persistence:** SQLAlchemy models, 5 Alembic migrations tested for round trips on populated databases, atomic ingestion, per-asset row locking (`SELECT ... FOR UPDATE`) with bounded PostgreSQL transaction retries, and a unique constraint per asset, cycle and model version.
 - **Concurrency testing:** isolated PostgreSQL race tests (same-cycle ingestion, concurrent decisions, workflow races) plus a reproducible benchmark. Recorded run: 4 concurrent assets × 240 cycles = 960 requests, 0 errors, 85.3 requests/s, p50 46 ms, p95 64 ms, with the original GRU. Real auth and real PostgreSQL I/O were included, but network, TLS and a production worker topology were not. Details and boundaries: [`docs/BACKEND_PERSISTENCE.md`](docs/BACKEND_PERSISTENCE.md).
 - **Console:** a React (Next.js) operations console showing the priority queue, remaining life, the serving model, top drifting sensors per prediction (a drift ranking, not a diagnosis), and alert and work-order actions gated by role.
 - **Replay service:** an adjustable-speed, resumable FD001 telemetry replay that drives the real API.
-- **Tests:** 260 tests across data integrity, leakage-safe splits, feature parity between training and serving, model artifact integrity, API validation, migrations, idempotent ingestion, workflows and PostgreSQL concurrency.
+- **Tests:** 266 tests across data integrity, leakage-safe splits, feature parity between training and serving, model artifact integrity, API validation, migrations, idempotent ingestion, workflows and PostgreSQL concurrency.
 
 ## Repository structure
 
@@ -136,6 +137,7 @@ cd frontend; npm install; npm run dev
 | `RUL_MODEL` | `hgb` | `hgb` serves gradient boosting v2.0.0. `gru` serves the legacy torch GRU v1.0.0 |
 | `RUL_CRITICAL_THRESHOLD` | `15` | CRITICAL at or below this RUL (set to execution lead time + about 10) |
 | `RUL_HIGH_THRESHOLD` / `RUL_MEDIUM_THRESHOLD` | `30` / `70` | HIGH and MEDIUM severity bounds |
+| `LOG_LEVEL` | `INFO` | logging level for the `reliability.*` loggers |
 | `DATABASE_URL` | SQLite | for PostgreSQL use `postgresql+psycopg://user:password@host/db` |
 
 Stored predictions keep the severity they were created with, so changing thresholds does not rewrite history. The served model's RUL is clipped to 0–125, so values near 125 mean "healthy" and are not a measured remaining life. Pickled models depend on the scikit-learn version. After changing it, run `python scripts/export_fd001_hgb.py` to rebuild the artifact. The service refuses to start if the stored golden predictions do not match.

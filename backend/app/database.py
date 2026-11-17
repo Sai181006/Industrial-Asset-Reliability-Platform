@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from functools import wraps
 from inspect import signature
@@ -15,6 +16,7 @@ from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 
+logger = logging.getLogger("reliability.database")
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DATABASE_URL = f"sqlite:///{(ROOT / 'data' / 'interim' / 'reliability.db').as_posix()}"
 DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
@@ -110,6 +112,7 @@ def atomic_mutation(operation: Callable[P, T]) -> Callable[P, T]:
                 db.rollback()
                 if attempt + 1 == TRANSACTION_ATTEMPTS or not is_retryable_transaction_error(error, db):
                     raise
+                logger.warning("retrying transaction attempt=%s/%s after database error", attempt + 1, TRANSACTION_ATTEMPTS)
                 sleep(0.05 * (2 ** attempt))
             except BaseException:
                 db.rollback()

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import logging
 import os
 
 from fastapi import HTTPException
@@ -12,6 +13,8 @@ from sqlalchemy.orm import Session
 from backend.app.database import lock_asset
 from backend.app.models import Alert, Prediction, WorkOrder
 
+
+logger = logging.getLogger("reliability.decision")
 
 SEVERITY_RANK = {"NORMAL": 0, "MEDIUM": 1, "HIGH": 2, "CRITICAL": 3}
 
@@ -97,7 +100,9 @@ def apply_decision(
         )
         db.add(alert)
         db.flush()
+        logger.info("alert opened asset=%s severity=%s alert=%s", prediction.asset_id, severity, alert.id)
     elif SEVERITY_RANK[severity] > SEVERITY_RANK[alert.severity]:
+        logger.info("alert escalated asset=%s %s->%s alert=%s", prediction.asset_id, alert.severity, severity, alert.id)
         alert.severity = severity
         alert.prediction_id = prediction.id
 
@@ -111,6 +116,7 @@ def apply_decision(
         work_order = WorkOrder(asset_id=prediction.asset_id, alert_id=alert.id, status="OPEN")
         db.add(work_order)
         db.flush()
+        logger.info("work order created asset=%s alert=%s order=%s", prediction.asset_id, alert.id, work_order.id)
     prediction.decision_alert_id = alert.id
     prediction.decision_work_order_id = work_order.id if work_order is not None else None
     prediction.decision_processed = True

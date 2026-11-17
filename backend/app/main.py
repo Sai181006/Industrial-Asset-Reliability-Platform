@@ -1,13 +1,17 @@
 """Authenticated synchronous reliability API."""
 
+from contextlib import asynccontextmanager
 from functools import lru_cache
+import logging
 
 from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.routing import APIRoute
 from datetime import datetime, timezone
 import os
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -37,11 +41,27 @@ from backend.app.schemas import (
 from ml.baseline import FEATURE_COLUMNS
 
 
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
+logger = logging.getLogger("reliability.api")
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # Fail at startup, not on the first request, if the model artifact or manifest is bad.
+    service = get_inference_service()
+    logger.info("model loaded id=%s version=%s", service.manifest["model_id"], service.manifest["version"])
+    yield
+
+
 app = FastAPI(
     title="Industrial Asset Reliability Platform",
     version="0.1.0",
     description="Authenticated promoted-model inference and maintenance workflow API.",
     dependencies=[Depends(authenticate)],
+    lifespan=lifespan,
 )
 
 frontend_origins = [
@@ -57,6 +77,29 @@ app.add_middleware(
     allow_credentials=False,
     allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
+)
+
+
+def health(db: Session = Depends(get_db)) -> JSONResponse:
+    """Unauthenticated liveness and readiness check: database reachable, model loaded."""
+    try:
+        db.execute(text("SELECT 1"))
+        service = get_inference_service()
+    except Exception:
+        logger.exception("health check failed")
+        return JSONResponse(status_code=503, content={"status": "unavailable"})
+    return JSONResponse(
+        content={
+            "status": "ok",
+            "model_id": service.manifest["model_id"],
+            "model_version": service.manifest["version"],
+        }
+    )
+
+
+# Added as a bare route so the app-wide authentication dependency does not apply to it.
+app.router.routes.append(
+    APIRoute("/health", health, methods=["GET"], dependency_overrides_provider=app, include_in_schema=False)
 )
 
 
@@ -331,6 +374,7 @@ def list_alerts(
     asset_id: str | None = None,
     alert_status: str | None = Query(default=None, alias="status"),
     active: bool | None = None,
+    limit: int = Query(default=200, ge=1, le=1000),
     db: Session = Depends(get_db),
 ) -> list[AlertResponse]:
     statement = select(Alert)
@@ -340,7 +384,8 @@ def list_alerts(
         statement = statement.where(Alert.status == alert_status.upper())
     if active is not None:
         statement = statement.where(Alert.active.is_(active))
-    alerts = db.scalars(statement.order_by(Alert.id)).all()
+    alerts = list(db.scalars(statement.order_by(Alert.id.desc()).limit(limit)))
+    alerts.reverse()  # newest `limit` alerts, oldest first
     return [AlertResponse.model_validate(alert, from_attributes=True) for alert in alerts]
 
 
@@ -401,6 +446,7 @@ def get_alert(alert_id: int, db: Session = Depends(get_db)) -> AlertResponse:
 def list_work_orders(
     asset_id: str | None = None,
     work_order_status: str | None = Query(default=None, alias="status"),
+    limit: int = Query(default=200, ge=1, le=1000),
     db: Session = Depends(get_db),
 ) -> list[WorkOrderResponse]:
     statement = select(WorkOrder)
@@ -408,7 +454,8 @@ def list_work_orders(
         statement = statement.where(WorkOrder.asset_id == asset_id)
     if work_order_status is not None:
         statement = statement.where(WorkOrder.status == work_order_status.upper())
-    orders = db.scalars(statement.order_by(WorkOrder.id)).all()
+    orders = list(db.scalars(statement.order_by(WorkOrder.id.desc()).limit(limit)))
+    orders.reverse()  # newest `limit` orders, oldest first
     return [WorkOrderResponse.model_validate(order, from_attributes=True) for order in orders]
 
 
