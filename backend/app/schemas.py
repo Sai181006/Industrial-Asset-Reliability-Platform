@@ -50,6 +50,13 @@ class RULPredictionRequest(BaseModel):
         return self
 
 
+class DriftDriver(BaseModel):
+    """A sensor drifting toward its degraded direction versus a healthy baseline (not a cause)."""
+
+    sensor: str
+    drift_z: float
+
+
 class RULPredictionResponse(BaseModel):
     asset_id: str
     window_start_cycle: int
@@ -58,6 +65,7 @@ class RULPredictionResponse(BaseModel):
     operational_rul: float
     model_id: str
     model_version: str
+    drivers: list[DriftDriver] | None = None
 
 
 class AssetCreate(BaseModel):
@@ -143,6 +151,7 @@ class StoredPredictionResponse(BaseModel):
     risk_severity: str
     model_id: str
     model_version: str
+    drivers: list[DriftDriver] | None = None
 
 
 class AssetDetailResponse(BaseModel):

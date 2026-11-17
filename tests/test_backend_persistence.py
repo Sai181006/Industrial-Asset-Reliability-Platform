@@ -128,6 +128,31 @@ def test_incremental_ingestion_persists_one_idempotent_prediction(
     assert prediction_count == 1
 
 
+def test_drivers_are_persisted_and_identical_on_retry(database_session_factory, telemetry_points):
+    request("POST", "/v1/assets", {"asset_id": "drivers", "name": "Drivers Engine"})
+    for point in telemetry_points[:29]:
+        request("POST", "/v1/assets/drivers/telemetry", point)
+    first = request("POST", "/v1/assets/drivers/telemetry", telemetry_points[29]).json()["prediction"]
+    assert first["model_version"] == "2.0.0" and len(first["drivers"]) == 3
+    retry = request("POST", "/v1/assets/drivers/telemetry", telemetry_points[29]).json()["prediction"]
+    assert retry["drivers"] == first["drivers"]
+    stored = request("GET", "/v1/assets/drivers/predictions", {}).json()[0]
+    assert stored["drivers"] == first["drivers"]
+
+
+def test_default_critical_threshold_is_fifteen():
+    thresholds = RiskThresholds.from_environment()
+    assert thresholds.critical == 15.0
+    assert thresholds.severity(12) == "CRITICAL"
+    assert thresholds.severity(15) == "CRITICAL"
+    assert thresholds.severity(16) == "HIGH"
+
+
+def test_critical_threshold_is_overridable_by_environment(monkeypatch):
+    monkeypatch.setenv("RUL_CRITICAL_THRESHOLD", "22")
+    assert RiskThresholds.from_environment().critical == 22.0
+
+
 def test_conflicting_retry_is_rejected(database_session_factory, telemetry_points):
     request("POST", "/v1/assets", {"asset_id": "conflict", "name": "Conflict Engine"})
     assert request("POST", "/v1/assets/conflict/telemetry", telemetry_points[0]).status_code == 200

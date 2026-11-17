@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, UniqueConstraint, func, text
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Index, Integer, String, UniqueConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.database import Base
@@ -72,6 +72,8 @@ class Prediction(Base):
     model_id: Mapped[str] = mapped_column(String(128))
     model_version: Mapped[str] = mapped_column(String(64))
     risk_severity: Mapped[str] = mapped_column(String(16), default="NORMAL")
+    # Top drifting sensors versus a healthy baseline (HGB model only); a drift ranking, not a cause.
+    drivers: Mapped[list | None] = mapped_column(JSON, nullable=True)
     decision_processed: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
     decision_alert_id: Mapped[int | None] = mapped_column(
         ForeignKey("alerts.id", name="fk_prediction_decision_alert", use_alter=True), nullable=True

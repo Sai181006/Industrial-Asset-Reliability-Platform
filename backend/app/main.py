@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from backend.app.database import atomic_mutation, get_db, is_duplicate_asset, lock_asset
 from backend.app.auth import Principal, authenticate, require_admin, require_operator
 from backend.app.decision import RiskThresholds, apply_decision, stored_decision
-from backend.app.inference import RULInferenceService
+from backend.app.inference import InferenceService, create_inference_service
 from backend.app.models import Alert, Asset, Prediction, TelemetryPointRecord, WorkOrder
 from backend.app.schemas import (
     AssetCreate,
@@ -66,8 +66,8 @@ def current_principal(principal: Principal = Depends(authenticate)) -> Principal
 
 
 @lru_cache(maxsize=1)
-def get_inference_service() -> RULInferenceService:
-    return RULInferenceService()
+def get_inference_service() -> InferenceService:
+    return create_inference_service()
 
 
 @lru_cache(maxsize=1)
@@ -78,7 +78,7 @@ def get_risk_thresholds() -> RiskThresholds:
 @app.post("/v1/predictions/rul", response_model=RULPredictionResponse)
 def predict_rul_endpoint(
     request: RULPredictionRequest,
-    service: RULInferenceService = Depends(get_inference_service),
+    service: InferenceService = Depends(get_inference_service),
     _principal: Principal = Depends(require_operator),
 ) -> RULPredictionResponse:
     return service.predict(request)
@@ -217,7 +217,7 @@ def ingest_telemetry(
     asset_id: str,
     point: TelemetryPoint,
     db: Session = Depends(get_db),
-    service: RULInferenceService = Depends(get_inference_service),
+    service: InferenceService = Depends(get_inference_service),
     thresholds: RiskThresholds = Depends(get_risk_thresholds),
     _principal: Principal = Depends(require_operator),
 ) -> TelemetryIngestResponse:
@@ -280,6 +280,7 @@ def ingest_telemetry(
                     operational_rul=calculated.operational_rul,
                     model_id=calculated.model_id,
                     model_version=calculated.model_version,
+                    drivers=[d.model_dump() for d in calculated.drivers] if calculated.drivers else None,
                 )
                 db.add(prediction)
                 db.flush()
@@ -295,6 +296,7 @@ def ingest_telemetry(
                 operational_rul=prediction.operational_rul,
                 model_id=prediction.model_id,
                 model_version=prediction.model_version,
+                drivers=prediction.drivers,
             )
             decision_response = DecisionResponse(
                 severity=decision.severity,

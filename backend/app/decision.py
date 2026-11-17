@@ -18,7 +18,9 @@ SEVERITY_RANK = {"NORMAL": 0, "MEDIUM": 1, "HIGH": 2, "CRITICAL": 3}
 
 @dataclass(frozen=True)
 class RiskThresholds:
-    critical: float = 10.0
+    # Trigger at (work-order lead time in cycles) + ~10; 15 is the safest fixed default for leads 0-5.
+    # See docs/GRU_AND_THRESHOLD_EXPERIMENTS.md. Override with RUL_CRITICAL_THRESHOLD.
+    critical: float = 15.0
     high: float = 30.0
     medium: float = 70.0
 
@@ -29,7 +31,7 @@ class RiskThresholds:
     @classmethod
     def from_environment(cls) -> "RiskThresholds":
         return cls(
-            critical=float(os.getenv("RUL_CRITICAL_THRESHOLD", "10")),
+            critical=float(os.getenv("RUL_CRITICAL_THRESHOLD", "15")),
             high=float(os.getenv("RUL_HIGH_THRESHOLD", "30")),
             medium=float(os.getenv("RUL_MEDIUM_THRESHOLD", "70")),
         )

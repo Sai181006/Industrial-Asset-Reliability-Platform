@@ -75,10 +75,9 @@ def is_duplicate_asset(error: IntegrityError, db: Session) -> bool:
             or getattr(error.orig, "pgcode", None) == "23505"
         ) and getattr(getattr(error.orig, "diag", None), "constraint_name", None) == "assets_pkey"
     if backend == "sqlite":
-        return (
-            getattr(error.orig, "sqlite_errorcode", None) in {1555, 2067}
-            and str(error.orig) == "UNIQUE constraint failed: assets.id"
-        )
+        # sqlite_errorcode exists only on Python 3.11+; the exact message is specific enough without it.
+        code = getattr(error.orig, "sqlite_errorcode", None)
+        return (code is None or code in {1555, 2067}) and str(error.orig) == "UNIQUE constraint failed: assets.id"
     return False
 
 

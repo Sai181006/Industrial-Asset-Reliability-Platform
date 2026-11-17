@@ -135,3 +135,24 @@ def test_batch_rejects_caller_transaction_without_committing(migration_connectio
     assert connection.exec_driver_sql("PRAGMA foreign_keys").scalar_one() == 1
     connection.rollback()
     assert connection.exec_driver_sql("SELECT name FROM assets").scalar_one() == "Asset"
+
+
+@pytest.mark.parametrize("enabled", [0, 1])
+def test_drivers_column_migration_round_trips_without_losing_rows(migration_connection, enabled):
+    config, connection = migration_connection
+    command.upgrade(config, "0004")
+    connection.exec_driver_sql(f"PRAGMA foreign_keys = {enabled}")
+    before = snapshot(connection)
+    connection.commit()
+    command.upgrade(config, "0005")
+    assert "drivers" in {column["name"] for column in inspect(connection).get_columns("predictions")}
+    assert connection.exec_driver_sql("SELECT drivers FROM predictions ORDER BY id").all() == [(None,), (None,)]
+    assert connection.exec_driver_sql("PRAGMA foreign_key_check").all() == []
+    after = snapshot(connection)
+    assert [tuple(row[: len(before["predictions"][0])]) for row in after["predictions"]] == before["predictions"]
+    for table in ("assets", "alerts", "work_orders"):
+        assert after[table] == before[table]
+    connection.commit()  # batch migrations refuse to run inside a caller's transaction
+    command.downgrade(config, "0004")
+    assert "drivers" not in {column["name"] for column in inspect(connection).get_columns("predictions")}
+    assert snapshot(connection) == before
