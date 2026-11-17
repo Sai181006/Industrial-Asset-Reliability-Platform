@@ -496,17 +496,18 @@ def test_ordered_multiasset_concurrent_replay(postgres, fake_inference):
 
 
 def test_real_artifact_sequential_and_parallel_replay(postgres, monkeypatch):
-    from backend.app.inference import ARTIFACT_PATH, MANIFEST_PATH, RULInferenceService
+    from backend.app.inference import HGB_ARTIFACT_PATH, HGB_MANIFEST_PATH, create_inference_service
 
     raw_dir = ROOT / "data" / "raw" / "source" / "CMAPSSData"
-    required = [ARTIFACT_PATH, MANIFEST_PATH, *(raw_dir / name for name in (
+    required = [HGB_ARTIFACT_PATH, HGB_MANIFEST_PATH, *(raw_dir / name for name in (
         "train_FD001.txt", "test_FD001.txt", "RUL_FD001.txt"
     ))]
     if not all(path.is_file() for path in required):
-        pytest.skip("Promoted GRU artifact, manifest and official FD001 files are required")
+        pytest.skip("Served model artifact, manifest and official FD001 files are required")
     from backend.app.replay import load_training_trajectory
 
-    service = RULInferenceService()
+    monkeypatch.setenv("RUL_MODEL", "hgb")
+    service = create_inference_service()
     monkeypatch.setitem(main.app.dependency_overrides, main.get_inference_service, lambda: service)
     trajectory = load_training_trajectory(raw_dir, 81)[:31]
     assert len(trajectory) == 31
@@ -523,7 +524,8 @@ def test_real_artifact_sequential_and_parallel_replay(postgres, monkeypatch):
         assert [prediction["window_end_cycle"] for prediction in history] == [31, 30]
         assert all(prediction["model_id"] == service.manifest["model_id"] for prediction in history)
         assert all(prediction["model_version"] == service.manifest["version"] for prediction in history)
-        assert all(prediction["operational_rul"] == max(prediction["raw_rul"], 0.0) for prediction in history)
+        cap = getattr(service, "rul_cap", float("inf"))
+        assert all(prediction["operational_rul"] == min(max(prediction["raw_rul"], 0.0), cap) for prediction in history)
         histories.append(history)
     for history in histories[1:]:
         for actual, expected in zip(history, histories[0]):

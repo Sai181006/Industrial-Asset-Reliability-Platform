@@ -106,7 +106,14 @@ class HGBInferenceService:
             raise RuntimeError("Drift baseline sensors do not match the input contract")
         self.request_columns: list[str] = list(contract["request_columns"])
         self._indices = [self.request_columns.index(sensor) for sensor in self.sensors]
-        self.model = joblib.load(artifact_path)  # trusted: gated by the checksum above
+        try:
+            self.model = joblib.load(artifact_path)  # trusted: gated by the checksum above
+        except Exception as error:
+            built = self.manifest["environment"]["scikit_learn"]
+            raise RuntimeError(
+                f"Cannot load the model artifact (built with scikit-learn {built}). "
+                "Run `python scripts/export_fd001_hgb.py` in this environment to rebuild it."
+            ) from error
         self._check_environment()
         self._check_golden_predictions()
 

@@ -233,12 +233,11 @@ async def measure(args, trajectory, engine, report):
     import httpx
     from sqlalchemy import func, select
     from sqlalchemy.orm import sessionmaker
-    import torch
 
     from backend.app import auth, main
     from backend.app.database import get_db
     from backend.app.decision import RiskThresholds
-    from backend.app.inference import RULInferenceService
+    from backend.app.inference import create_inference_service
     from backend.app.models import Alert, Asset, Prediction, TelemetryPointRecord, WorkOrder
     from backend.app.schemas import RULPredictionRequest
 
@@ -252,7 +251,7 @@ async def measure(args, trajectory, engine, report):
                 session.rollback()
                 raise
 
-    service = RULInferenceService()
+    service = create_inference_service()  # RUL_MODEL selects hgb (default) or gru
     thresholds = RiskThresholds.from_environment()
     service.predict(RULPredictionRequest(asset_id="warmup", telemetry=trajectory[:30]))
     app = FastAPI()
@@ -266,8 +265,13 @@ async def measure(args, trajectory, engine, report):
     report["auth"] = {"mode": "real_bearer_ephemeral_in_process_sha256", "bypass": False}
     report["model"] = {"id": service.manifest["model_id"], "version": service.manifest["version"],
                        "artifact_sha256": service.manifest["artifact_sha256"], "warmup_requests": 1}
-    report["environment"].update(torch=str(torch.__version__), torch_threads=torch.get_num_threads(),
-                                 torch_interop_threads=torch.get_num_interop_threads())
+    try:  # torch is only present (and only matters) when RUL_MODEL=gru
+        import torch
+
+        report["environment"].update(torch=str(torch.__version__), torch_threads=torch.get_num_threads(),
+                                     torch_interop_threads=torch.get_num_interop_threads())
+    except Exception:
+        pass
     report["settings"] = {"workers": 1, "transport": "in_process_ASGI_no_network_HTTP",
                           "assets": args.assets, "cycles_per_asset": args.cycles,
                           "concurrency": args.concurrency, "effective_concurrency": min(args.assets, args.concurrency),
@@ -360,7 +364,7 @@ async def measure(args, trajectory, engine, report):
                     (cycle - 29, cycle) for cycle in range(30, args.cycles + 1)
                 ] or not all(p.decision_processed and p.model_version == service.manifest["version"]
                              and p.model_id == service.manifest["model_id"] and math.isfinite(p.raw_rul)
-                             and p.operational_rul == max(p.raw_rul, 0.0)
+                             and p.operational_rul == min(max(p.raw_rul, 0.0), getattr(service, "rul_cap", float("inf")))
                              and p.risk_severity == thresholds.severity(p.operational_rul) for p in predictions):
                     mismatches.append(f"{asset_id}: prediction validation")
                 alerts = list(session.scalars(select(Alert).where(Alert.asset_id == asset_id)))

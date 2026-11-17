@@ -62,7 +62,10 @@ def test_prediction_endpoint_serves_hgb_by_default(payload, fresh_service):
 
 
 def test_gru_remains_selectable(payload, fresh_service):
-    pytest.importorskip("torch")
+    try:
+        import torch  # noqa: F401
+    except Exception:  # missing or unusable torch install
+        pytest.skip("torch is not usable in this environment")
     fresh_service.setenv("RUL_MODEL", "gru")
     response = post("/v1/predictions/rul", payload)
     assert response.status_code == 200

@@ -85,6 +85,17 @@ def test_tampered_golden_prediction_is_refused(tmp_path, manifest):
         HGBInferenceService(manifest_path=path)
 
 
+def test_unloadable_artifact_gives_an_actionable_error(monkeypatch):
+    import joblib
+
+    def fail(_path):
+        raise ValueError("incompatible pickle")
+
+    monkeypatch.setattr(joblib, "load", fail)
+    with pytest.raises(RuntimeError, match="export_fd001_hgb.py"):
+        HGBInferenceService()
+
+
 def test_unpromoted_manifest_is_refused(tmp_path, manifest):
     broken = {**manifest, "status": "draft"}
     path = tmp_path / "manifest.json"
