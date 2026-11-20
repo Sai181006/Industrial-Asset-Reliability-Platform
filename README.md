@@ -18,6 +18,12 @@ The project's focus is evaluation discipline: every model and policy claim below
 
 The data is simulated, the maintenance costs are illustrative assumptions, and the concurrency benchmark is a local in-process run. See [Limitations](#limitations).
 
+### Operations console
+
+![Operations console after replaying FD001 engine 81: CRITICAL alert, remaining-life estimate, top drifting sensors and the open work order](docs/images/console-critical-alert.png)
+
+*The console after replaying FD001 engine 81 through the API. The alert and work order opened automatically; the panel shows the serving model version, the three sensors drifting furthest from the healthy baseline, and role-gated workflow actions.*
+
 ## How it works
 
 ```text
